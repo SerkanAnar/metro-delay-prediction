@@ -208,3 +208,6 @@ __marimo__/
 
 # project files
 sl_new/
+
+# .DS_Store
+.DS_Store
