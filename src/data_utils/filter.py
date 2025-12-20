@@ -45,11 +45,6 @@ def clean_stops(original_path, target_path, relevant_stop_ids):
         filtered_df.to_csv(target_path, index=False)
 
 def get_trip_ids(path):
-    """
-    Finds all relevant trip ids.
-    :path is the path to the 
-    :return: returns relevant trip ids
-    """ 
     df = pd.read_csv(path, dtype={'trip_id':str})
     relevant_trip_ids = set(df['trip_id'])
     return relevant_trip_ids
