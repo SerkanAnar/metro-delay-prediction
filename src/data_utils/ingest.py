@@ -39,6 +39,8 @@ def pb_to_json(target_dir):
     with open(f'{target_dir}.json', 'w', encoding='utf-8') as f:
         f.write(str(feed))
         
+    print(f"Converted {target_dir}.pb to {target_dir}.json.")
+    
 
 # TESTING
 
