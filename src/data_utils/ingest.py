@@ -4,6 +4,8 @@ from google.protobuf.json_format import MessageToDict
 import json
 import requests
 import os
+from pathlib import Path
+import zipfile
 
 
 def fetch_static(date, target_dir):
@@ -28,6 +30,31 @@ def fetch_static(date, target_dir):
         
     print(f"Saved GTFS static file to {file_path}.")
     return file_path
+
+
+def zip_to_txt(target_dir):
+    """
+    Extracts .zip files into .txt files and removes the .zip file
+    :param target_dir: Target .zip file to extract
+    :return:           Path to the folder with the extracted files
+    """
+    zip_path = Path(target_dir)
+    if zip_path.suffix != ".zip":
+        raise ValueError("Expected a .zip file")
+    base_name = zip_path.stem
+    base_dir = zip_path.parent
+    
+    output_dir = os.path.join(base_dir, 'static')
+    output_dir = Path(os.path.join(output_dir, base_name))
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    with zipfile.ZipFile(zip_path, 'r') as z:
+        z.extractall(output_dir)
+    print(f"Successfully extracted {zip_path} to {output_dir}")
+        
+    zip_path.unlink()
+    print(f"Removed {zip_path}")
+    return output_dir
 
 
 def pb_to_json(target_dir):
@@ -55,6 +82,6 @@ def pb_to_json(target_dir):
 
 # TESTING
 
-pb_to_json('data/realtime/realtime')
-# fetch_static("2025-12-12", "data")
+zip_file = fetch_static("2025-12-12", "data")
+zip_to_txt(zip_file)
 # pb_to_json("data/test")
