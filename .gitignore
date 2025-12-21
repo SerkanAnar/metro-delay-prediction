@@ -211,3 +211,10 @@ sl_new/
 
 # .DS_Store
 .DS_Store
+
+# data files
+*.txt
+*.zip
+*.json
+*.pb
+*.csv
