@@ -63,6 +63,19 @@ def zip_to_txt(target_dir):
     return output_dir
 
 
+def txt_to_csv(target_dir):
+    """
+    Converts .txt files in a directory to .csv files
+    
+    :param target_dir: Directory where all .txt files will be converted to .csv files
+    :return:           Path to the directory
+    """
+    directory = Path(target_dir)
+    for path in directory.glob("*.txt"):
+        path.rename(path.with_suffix(".csv"))
+    return directory
+
+
 def pb_to_json(target_dir):
     """
         Converts .pb files into .json.
@@ -89,5 +102,6 @@ def pb_to_json(target_dir):
 # TESTING
 
 zip_file = fetch_static("2025-12-12", "data")
-zip_to_txt(zip_file)
+zip_dir = zip_to_txt(zip_file)
+txt_to_csv(zip_dir)
 # pb_to_json("data/test")
