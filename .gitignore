@@ -216,8 +216,5 @@ sl_new/
 *__MACOSX
 
 # data files
-*.txt
-*.zip
-*.json
-*.pb
-*.csv
+data/*
+!data/!.gitkeep
