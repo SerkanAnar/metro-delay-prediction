@@ -6,9 +6,10 @@ import os
 
 def fetch_static(date, target_dir):
     """
-        Fetches static planned public transport data using Trafiklab's KoDa API.
-        :date specifies which date the data is fetched from, in YYYY-MM-DD format.
-        :target_dir is the directory that the API output should be saved at, without file name.
+        Fetches static planned public transport data using Trafiklab's KoDa API
+        :param date:       Specifies which date the data is fetched from, in YYYY-MM-DD format
+        :param target_dir: Directory that the API output should be saved at, without file name
+        :return:           Path of the saved .zip folder
     """
     load_dotenv()
     api_key = os.getenv("KODA_API_KEY")
@@ -24,12 +25,14 @@ def fetch_static(date, target_dir):
         f.write(response.content)
         
     print(f"Saved GTFS static file to {file_path}.")
+    return file_path
 
 
 def pb_to_json(target_dir):
     """
         Converts .pb files into .json.
-        :target_dir is the directory the .pb file is in, with the file name, excluding ".pb".
+        :param target_dir: Directory the .pb file is in, with the file name, excluding ".pb"
+        :return:           Path of the saved .json file
     """
     feed = gtfs_realtime_pb2.FeedMessage()
 
@@ -40,6 +43,7 @@ def pb_to_json(target_dir):
         f.write(str(feed))
         
     print(f"Converted {target_dir}.pb to {target_dir}.json.")
+    return f'{target_dir}.json'
     
 
 # TESTING
