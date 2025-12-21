@@ -16,6 +16,7 @@ def fetch_static(date, target_dir):
         :param target_dir: Directory that the API output should be saved at, without file name
         :return:           Path of the saved .zip folder
     """
+    
     load_dotenv()
     api_key = os.getenv("KODA_API_KEY")
     
@@ -40,6 +41,7 @@ def zip_to_txt(target_dir):
     :param target_dir: Target .zip file to extract
     :return:           Path to the folder with the extracted files
     """
+
     zip_path = Path(target_dir)
     if zip_path.suffix != ".zip":
         raise ValueError("Expected a .zip file")
@@ -72,6 +74,7 @@ def txt_to_csv(target_dir):
     :param target_dir: Directory where all .txt files will be converted to .csv files
     :return:           Path to the directory
     """
+
     directory = Path(target_dir)
     for path in directory.glob("*.txt"):
         path.rename(path.with_suffix(".csv"))
@@ -85,6 +88,7 @@ def pb_to_json(target_dir):
         :param target_dir: Directory the .pb file is in, with the file name, excluding ".pb"
         :return:           Path of the saved .json file
     """
+
     feed = gtfs_realtime_pb2.FeedMessage()
 
     with open(f'{target_dir}.pb', 'rb') as f:
