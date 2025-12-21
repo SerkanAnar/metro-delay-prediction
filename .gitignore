@@ -212,6 +212,9 @@ sl_new/
 # .DS_Store
 .DS_Store
 
+# __MACOSX
+*__MACOSX
+
 # data files
 *.txt
 *.zip
