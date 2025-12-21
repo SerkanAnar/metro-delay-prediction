@@ -11,6 +11,7 @@ import zipfile
 def fetch_static(date, target_dir):
     """
         Fetches static planned public transport data using Trafiklab's KoDa API
+        
         :param date:       Specifies which date the data is fetched from, in YYYY-MM-DD format
         :param target_dir: Directory that the API output should be saved at, without file name
         :return:           Path of the saved .zip folder
@@ -35,6 +36,7 @@ def fetch_static(date, target_dir):
 def zip_to_txt(target_dir):
     """
     Extracts .zip files into .txt files and removes the .zip file
+    
     :param target_dir: Target .zip file to extract
     :return:           Path to the folder with the extracted files
     """
@@ -78,7 +80,8 @@ def txt_to_csv(target_dir):
 
 def pb_to_json(target_dir):
     """
-        Converts .pb files into .json.
+        Converts .pb files into .json
+        
         :param target_dir: Directory the .pb file is in, with the file name, excluding ".pb"
         :return:           Path of the saved .json file
     """
