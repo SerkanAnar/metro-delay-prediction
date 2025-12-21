@@ -5,6 +5,7 @@ import json
 def filter_routes(original_path, target_path):
     """
         Filters out non-metro routes from routes.csv and creates a filtered csv file
+
         :param original_path:   Path to the original routes.csv file
         :param target_path:     Path where the filtered csv should be saved, including filename
         :return:                Set of relevant route ids
@@ -23,6 +24,7 @@ def filter_routes(original_path, target_path):
 def filter_trips(original_path, target_path, relevant_route_ids):
     """
         Filters out non-relevant trip ids in trips.csv and creates a filtered csv file
+
         :param original_path:       Path to the original trips.csv file
         :param target_path:         Path where the filtered csv should be saved, including filename
         :param relevant_route_ids:  Set of relevant route ids
@@ -41,6 +43,7 @@ def filter_trips(original_path, target_path, relevant_route_ids):
 def filter_shapes(original_path, target_path, relevant_shape_ids):
     """
         Filters out non-relevant shape ids in shapes.csv and creates a filtered csv file
+
         :param original_path:       Path to the original shapes.csv file
         :param target_path:         Path where the filtered csv should be saved, including filename
         :param relevant_shape_ids:  Set of relevant shape ids
@@ -54,6 +57,7 @@ def filter_shapes(original_path, target_path, relevant_shape_ids):
 def filter_stop_times(original_path, target_path, relevant_trip_ids):
     """
         Filters out non-relevant trip ids in stop_times.csv and creates a filtered csv file
+
         :param original_path:       Path to the original stop_times.csv file
         :param target_path:         Path where the filtered csv should be saved, including filename
         :param relevant_trip_ids:   Set of relevant trip ids
@@ -72,6 +76,7 @@ def filter_stop_times(original_path, target_path, relevant_trip_ids):
 def filter_stops(original_path, target_path, relevant_stop_ids):
     """
         Filters out non-relevant stop ids in stops.csv and creates a filtered csv file
+
         :param original_path:       Path to the original stops.csv file
         :param target_path:         Path where the filtered csv should be saved, including filename
         :param relevant_stop_ids:   Set of relevant stop ids
@@ -85,6 +90,7 @@ def filter_stops(original_path, target_path, relevant_stop_ids):
 def get_trip_ids(path):
     """
         Finds relevant trip ids in the filtered trips.csv file
+
         :param path:    Path to the filtered trips.csv file
         :returns:       Set of relevant trip ids
     """
@@ -96,6 +102,7 @@ def get_trip_ids(path):
 def compare_files(original_path, filtered_path):
     """
         Prints information of the original and filtered csv file for comparative purposes
+
         :param original_path:   Path to the original csv file
         :param filtered_path:   Path to the filtered csv file
     """
@@ -111,6 +118,7 @@ def compare_files(original_path, filtered_path):
 def filter_realtime_data(original_path, target_path, relevant_trip_ids):
     """
         Filters out non-relevant entities from the realtime (JSON) data
+
         :param original_path:       Path to the realtime .json file
         :param target_path:         Path where the filtered .json should be saved, including filename
         :param relevant_trip_ids:   Set of relevant trip ids
@@ -135,6 +143,7 @@ def filter_realtime_data(original_path, target_path, relevant_trip_ids):
 def filter_data(all_paths):
     """
         Handles the filtering pipeline for testing purposes
+        
         :param all_paths:   Dictionary containing all of the relevant paths
     """
     relevant_route_ids = filter_routes(all_paths['routes'][0], all_paths['routes'][1])
