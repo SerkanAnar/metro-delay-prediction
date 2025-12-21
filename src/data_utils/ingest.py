@@ -1,5 +1,7 @@
 from dotenv import load_dotenv
 from google.transit import gtfs_realtime_pb2
+from google.protobuf.json_format import MessageToDict
+import json
 import requests
 import os
 
@@ -39,14 +41,20 @@ def pb_to_json(target_dir):
     with open(f'{target_dir}.pb', 'rb') as f:
         feed.ParseFromString(f.read())
 
+    feed_dict = MessageToDict(
+        feed,
+        preserving_proto_field_name=True
+    )
+
     with open(f'{target_dir}.json', 'w', encoding='utf-8') as f:
-        f.write(str(feed))
+        json.dump(feed_dict, f, indent=2)
         
     print(f"Converted {target_dir}.pb to {target_dir}.json.")
     return f'{target_dir}.json'
-    
+
 
 # TESTING
 
-fetch_static("2025-12-12", "data")
+pb_to_json('data/realtime/realtime')
+# fetch_static("2025-12-12", "data")
 # pb_to_json("data/test")
