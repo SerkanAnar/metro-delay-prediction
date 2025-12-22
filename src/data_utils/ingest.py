@@ -58,12 +58,7 @@ def zip_to_txt(target_dir):
         
     zip_path.unlink()
     print(f"Removed {zip_path}")
-    
-    keep = {"routes.txt", "shapes.txt", "stop_times.txt", "stops.txt", "trips.txt"}
-    for path in output_dir.iterdir():
-        if path.is_file() and path.name not in keep:
-            path.unlink()
-    print(f"Removed unnecessary files in {output_dir}")
+
     return output_dir
 
 

@@ -187,6 +187,23 @@ def filter_data_for_date(DATA_ROOT, date):
     pass
 
 
+def filter_irrelevant_files(DATA_ROOT, date):
+    """
+        Filters out irrelevant files in the specified data directory
+            :param1 DATA_ROOT:  Data directory containing the GTFS data folders /static and /realtime
+            :param2 date:       The date of the dataset to process
+    """
+    output_dir = DATA_ROOT / "static" / date
+    output_dir.mkdir(parents=True, exist_ok=True)
+    keep = {"routes.csv", "shapes.csv", "stop_times.csv", "stops.csv", "trips.csv"}
+    for path in output_dir.iterdir():
+        if path.is_file() and path.name not in keep:
+            path.unlink()
+    print(f"Removed unnecessary files in {output_dir}")
+
+
 if __name__ == '__main__':
     DATA_ROOT = Path('data')
-    filter_data_for_date(DATA_ROOT, '2025-12-12')
+    date = '2025-12-12'
+    filter_irrelevant_files(DATA_ROOT, date)
+    filter_data_for_date(DATA_ROOT, date)
