@@ -3,6 +3,7 @@ from google.transit import gtfs_realtime_pb2
 from google.protobuf.json_format import MessageToDict
 import json
 import requests
+import shutil
 import os
 from pathlib import Path
 import py7zr
@@ -154,6 +155,25 @@ def extract_7z(target_dir):
     return output_dir
 
 
+def flatten_extracted_structure(target_dir):
+    """
+    Flattens the file structure of the extracted realtime data
+    
+    :param target_dir: Directory of the extracted 7z files
+    :return:           Path of the directory with all .pb files
+    """
+    
+    raw_dir = Path(target_dir)
+    
+    for path in raw_dir.glob("sl/VehiclePositions/*/*/*/*"):
+        for item in path.iterdir():
+            shutil.move(str(item), raw_dir / item.name)
+            
+    shutil.rmtree(raw_dir / "sl")
+    print(f"Successfully flattened {raw_dir}")
+    return raw_dir
+
+
 def pb_to_json(target_dir):
     """
         Converts .pb files into .json
@@ -187,6 +207,7 @@ if __name__ == '__main__':
     # zip_file = fetch_static("2025-12-12", "data")
     # zip_dir = zip_to_txt(zip_file)
     # txt_to_csv(zip_dir)
-    # fetch_realtime("2025-12-17", "data", hour=10)
-    extract_7z("data/2025-12-16.7z")
+    # realtime_file = fetch_realtime("2025-12-17", "data", hour=10)
+    # extract_7z(realtime_file)
+    flatten_extracted_structure("data/realtime/2025-12-17/raw")
     # pb_to_json("data/2025-12-12")
