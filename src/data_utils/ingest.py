@@ -5,6 +5,7 @@ import json
 import requests
 import os
 from pathlib import Path
+import py7zr
 import time
 import zipfile
 
@@ -126,6 +127,33 @@ def fetch_realtime(date, target_dir, feed="VehiclePositions", hour=None, wait_se
     return file_path
 
 
+def extract_7z(target_dir):
+    """
+    Extracts .7z files into its own folder in the target directory
+    
+    :param target_dir: Target .7z file to extract
+    :return:           Path to the folder with the extracted files
+    """
+
+    zip_path = Path(target_dir)
+    base_name = zip_path.stem
+    base_dir = zip_path.parent
+    
+    output_dir = os.path.join(base_dir, 'realtime')
+    output_dir = os.path.join(output_dir, base_name)
+    output_dir = Path(os.path.join(output_dir, 'raw'))
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    with py7zr.SevenZipFile(zip_path, mode="r") as z:
+        z.extractall(path=output_dir)
+    print(f"Successfully extracted {zip_path} to {output_dir}")
+        
+    zip_path.unlink()
+    print(f"Removed {zip_path}")
+
+    return output_dir
+
+
 def pb_to_json(target_dir):
     """
         Converts .pb files into .json
@@ -159,5 +187,6 @@ if __name__ == '__main__':
     # zip_file = fetch_static("2025-12-12", "data")
     # zip_dir = zip_to_txt(zip_file)
     # txt_to_csv(zip_dir)
-    fetch_realtime("2025-12-17", "data", hour=10)
+    # fetch_realtime("2025-12-17", "data", hour=10)
+    extract_7z("data/2025-12-16.7z")
     # pb_to_json("data/2025-12-12")
