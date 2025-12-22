@@ -155,9 +155,9 @@ def pb_to_json(target_dir):
 
 
 # TESTING
-
-# zip_file = fetch_static("2025-12-12", "data")
-# zip_dir = zip_to_txt(zip_file)
-# txt_to_csv(zip_dir)
-fetch_realtime("2025-12-17", "data", hour=10)
-# pb_to_json("data/2025-12-12")
+if __name__ == '__main__':
+    # zip_file = fetch_static("2025-12-12", "data")
+    # zip_dir = zip_to_txt(zip_file)
+    # txt_to_csv(zip_dir)
+    fetch_realtime("2025-12-17", "data", hour=10)
+    # pb_to_json("data/2025-12-12")
