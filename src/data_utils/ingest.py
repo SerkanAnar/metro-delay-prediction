@@ -96,6 +96,9 @@ def pb_to_json(target_dir):
 
     with open(f'{target_dir}.json', 'w', encoding='utf-8') as f:
         json.dump(feed_dict, f, indent=2)
+    
+    pb_path = Path(f'{target_dir}.pb')
+    pb_path.unlink()
         
     print(f"Converted {target_dir}.pb to {target_dir}.json.")
     return f'{target_dir}.json'
