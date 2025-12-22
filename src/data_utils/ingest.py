@@ -103,7 +103,8 @@ def pb_to_json(target_dir):
 
 # TESTING
 
-zip_file = fetch_static("2025-12-12", "data")
-zip_dir = zip_to_txt(zip_file)
-txt_to_csv(zip_dir)
-# pb_to_json("data/test")
+if __name__ == '__main__':
+    zip_file = fetch_static("2025-12-12", "data")
+    zip_dir = zip_to_txt(zip_file)
+    txt_to_csv(zip_dir)
+    # pb_to_json("data/test")
