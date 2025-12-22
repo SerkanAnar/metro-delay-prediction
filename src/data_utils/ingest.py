@@ -5,6 +5,7 @@ import json
 import requests
 import os
 from pathlib import Path
+import time
 import zipfile
 
 
@@ -76,6 +77,55 @@ def txt_to_csv(target_dir):
     return directory
 
 
+def fetch_realtime(date, target_dir, feed="VehiclePositions", hour=None, wait_seconds=30):
+    """
+        Fetches real time public transport data using Trafiklab's KoDa API
+        
+        :param date:         Specifies which date the data is fetched from, in YYYY-MM-DD format
+        :param target_dir:   Directory that the API output should be saved at, without file name
+        :param feed:         Specifies which feed [ServiceAlerts, TripUpdates, VehiclePositions] to fetch from
+        :param hour:         Use in [00-23] format to specify hour; fetches entire day if empty
+        :param wait_seconds: Number of seconds the function waits before retrying API call
+        :return:             Path of the saved .zip folder
+    """
+    load_dotenv()
+    api_key = os.getenv("KODA_API_KEY")
+    
+    if hour is None:
+        url = f'https://api.koda.trafiklab.se/KoDa/api/v2/gtfs-rt/sl/{feed}?date={date}&key={api_key}'
+    else:
+        url = f'https://api.koda.trafiklab.se/KoDa/api/v2/gtfs-rt/sl/{feed}?date={date}&hour={hour}&key={api_key}'
+    
+    while True:
+        try:
+            response = requests.get(url, timeout=(5,10))
+        
+        except requests.exceptions.ReadTimeout:
+            print(f"Retrying connection in {wait_seconds} seconds")
+            time.sleep(wait_seconds)
+            continue
+        
+        response.raise_for_status()
+        content_type = response.headers.get("Content-Type", "").lower()
+
+        if "application/json" in content_type:
+            data = response.json()
+            if "message" in data and "being processed" in data["message"]:
+                print(f"Still processing, retrying in {wait_seconds} seconds")
+                time.sleep(wait_seconds)
+                continue
+
+        break
+    
+    file_path = os.path.join(target_dir, f'{date}.7z')
+    
+    with open(file_path, 'wb') as f:
+        f.write(response.content)
+        
+    print(f"Saved GTFS realtime file to {file_path}.")
+    return file_path
+
+
 def pb_to_json(target_dir):
     """
         Converts .pb files into .json
@@ -106,8 +156,8 @@ def pb_to_json(target_dir):
 
 # TESTING
 
-if __name__ == '__main__':
-    zip_file = fetch_static("2025-12-12", "data")
-    zip_dir = zip_to_txt(zip_file)
-    txt_to_csv(zip_dir)
-    # pb_to_json("data/test")
+# zip_file = fetch_static("2025-12-12", "data")
+# zip_dir = zip_to_txt(zip_file)
+# txt_to_csv(zip_dir)
+fetch_realtime("2025-12-17", "data", hour=10)
+# pb_to_json("data/2025-12-12")
