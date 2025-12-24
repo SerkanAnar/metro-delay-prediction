@@ -118,7 +118,17 @@ def compare_files(original_path, filtered_path):
         print(df_filtered.info())
 
 
-def filter_snapshot(snapshot, relevant_trip_ids):
+def filter_TU_snapshot(snapshot, relevant_trip_ids):
+    relevant_entities = []
+    for entity in snapshot.get('entity', []):
+        trip = entity.get('trip_update', {}).get('trip', {}).get('trip_id')
+        if trip in relevant_trip_ids:
+            relevant_entities.append(entity)
+    snapshot['entity'] = relevant_entities
+    return snapshot
+
+
+def filter_RT_snapshot(snapshot, relevant_trip_ids):
     relevant_entities = []
     for entity in snapshot.get('entity', []):
         trip = entity.get('vehicle', {}).get('trip', {}).get('trip_id')
@@ -127,10 +137,12 @@ def filter_snapshot(snapshot, relevant_trip_ids):
     snapshot['entity'] = relevant_entities
     return snapshot
 
+
 def preprocess_and_aggregate_RT(DATA_ROOT, date, relevant_trip_ids):
     # First, we would like to convert all of the .pb files to .json
-    raw_RT_dir = DATA_ROOT / 'realtime' / date / 'raw'
-    output_dir = DATA_ROOT / 'realtime' / date / 'hourly'
+    raw_RT_dir = DATA_ROOT / 'realtime' / date / 'VehiclePositions' / 'raw'
+    output_dir = DATA_ROOT / 'realtime' / date / 'VehiclePositions' / 'hourly'
+    output_dir.mkdir(parents=True, exist_ok=True)
     for folder in raw_RT_dir.iterdir():
         if not folder.is_dir(): continue
         for f in folder.iterdir():
@@ -142,18 +154,18 @@ def preprocess_and_aggregate_RT(DATA_ROOT, date, relevant_trip_ids):
         hourly_snapshots = []
         if os.path.exists(output_dir / hour): continue
 
-        print('Filtering json files')
+        print('Filtering RT json files')
         json_files = list(folder.glob("*.json"))
         for json_file in tqdm(json_files, desc=f"Filtering snapshots for hour {hour}"):
             with open(json_file, 'r', encoding='utf-8') as f:
                 snapshot = json.load(f)
-            snapshot = filter_snapshot(snapshot, relevant_trip_ids)
+            snapshot = filter_RT_snapshot(snapshot, relevant_trip_ids)
             if snapshot.get('entity'):
                 hourly_snapshots.append({
                     'timestamp': snapshot['header']['timestamp'],
                     'entity': snapshot['entity']
                 })
-        print('Done filtering json files')
+        print('Done filtering RT json files')
         print(f'Writing snapshots to {hour}.json')
         with open(output_dir / f'{hour}.json', 'w', encoding='utf-8') as f:
             json.dump({
@@ -161,8 +173,44 @@ def preprocess_and_aggregate_RT(DATA_ROOT, date, relevant_trip_ids):
                 'hour': hour,
                 'snapshots': hourly_snapshots
             }, f, indent=2)
-
         print(f'Preprocessed, filtered and aggregated hour {hour} with {len(hourly_snapshots)} snapshots')
+
+
+def preprocess_and_aggregate_TU(DATA_ROOT, date, relevant_trip_ids):
+    raw_TU_dir = DATA_ROOT / 'realtime' / date / 'TripUpdates' / 'raw'
+    output_dir = DATA_ROOT / 'realtime' / date / 'TripUpdates' / 'hourly'
+    output_dir.mkdir(parents=True, exist_ok=True)
+    for folder in raw_TU_dir.iterdir():
+        if not folder.is_dir(): continue
+        for f in folder.iterdir():
+            if not f.suffix == '.pb': continue
+            path_to_file = folder / f.stem
+            pb_to_json(path_to_file)
+        
+        hour = folder.name
+        hourly_snapshots = []
+        if os.path.exists(output_dir / hour): continue
+
+        print('Filtering TU json files')
+        json_files = list(folder.glob("*.json"))
+        for json_file in tqdm(json_files, desc=f'Filtering snapshots for hour {hour}'):
+            with open(json_file, 'r', encoding='utf-8') as f:
+                snapshot = json.load(f)
+            snapshot = filter_TU_snapshot(snapshot, relevant_trip_ids)
+            if snapshot.get('entity'):
+                hourly_snapshots.append({
+                    'timestamp': snapshot['header']['timestamp'],
+                    'entity': snapshot['entity']
+                })
+        print('Done filtering TU json files')
+        print(f'Writing snapshots to {hour}.json')
+        with open(output_dir / f'{hour}.json', 'w', encoding='utf-8') as f:
+            json.dump({
+                'date': date,
+                'hour': hour,
+                'snapshots': hourly_snapshots
+            }, f, indent=2)
+        print(f'Preprocessed, filtered and aggregated TU hour {hour} with {len(hourly_snapshots)} snapshots')
 
 
 def filter_static(original_paths, filtered_dir):
@@ -190,7 +238,6 @@ def filter_static(original_paths, filtered_dir):
 
     stops_output_dir = filtered_dir / "stops.csv"
     filter_stops(original_paths['stops'], stops_output_dir, relevant_stop_ids)
-
     return relevant_trip_ids
 
 
@@ -202,18 +249,15 @@ def filter_data_for_date(DATA_ROOT, date):
         :param date:        The date of the dataset to process
     """
 
-    # handle static data
+    # Handle static and RT data
     static_directory = DATA_ROOT / "static" / date
     static_original_paths = {f.stem: f for f in static_directory.glob("*.csv")}
     filtered_dir = static_directory.with_name(static_directory.name + "-filtered")
     filtered_dir.mkdir(exist_ok=True)
 
     relevant_trip_ids = filter_static(static_original_paths, filtered_dir)
-
-    # TODO: handle realtime data after determining folder structure
     preprocess_and_aggregate_RT(DATA_ROOT, date, relevant_trip_ids)
-    pass
-
+    preprocess_and_aggregate_TU(DATA_ROOT, date, relevant_trip_ids)
 
 def filter_irrelevant_files(DATA_ROOT, date):
     """
