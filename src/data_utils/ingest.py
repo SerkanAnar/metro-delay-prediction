@@ -33,7 +33,7 @@ def fetch_static(date, target_dir):
     with open(file_path, 'wb') as f:
         f.write(response.content)
         
-    print(f"Saved GTFS static file to {file_path}.")
+    print(f"Saved GTFS static file to {file_path}")
     return file_path
 
 
