@@ -277,13 +277,16 @@ def filter_static(original_paths):
         :param original_paths:  Dictionary mapping filenames to original csv paths
         :return:                Set of relevant trip ids
     """
+
     print("filtering static data...")
+    
     relevant_route_ids = filter_routes(original_paths['routes'])
     relevant_shape_ids = filter_trips(original_paths['trips'], relevant_route_ids)
     relevant_trip_ids = get_trip_ids(original_paths['trips'])
     filter_shapes(original_paths['shapes'], relevant_shape_ids)
     relevant_stop_ids = filter_stop_times(original_paths['stop_times'], relevant_trip_ids)
     filter_stops(original_paths['stops'], relevant_stop_ids)
+
     print("done filtering static data.")
     return relevant_trip_ids
 
