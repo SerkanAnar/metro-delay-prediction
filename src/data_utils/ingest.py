@@ -37,7 +37,7 @@ def fetch_static(date, target_dir):
     return file_path
 
 
-def zip_to_txt(target_dir):
+def extract_zip(target_dir):
     """
     Extracts .zip files into .txt files and removes the .zip file
     
@@ -134,6 +134,7 @@ def extract_7z(target_dir, feed="VehiclePositions", hour=None):
     
     :param target_dir: Target .7z file to extract
     :param feed:       Specifies extraction folder [ServiceAlerts, TripUpdates, VehiclePositions]
+    :param hour:       Specify to extract the files into an hour subdirectory
     :return:           Path to the folder with the extracted files
     """
 
@@ -181,7 +182,7 @@ def flatten_extracted_structure(target_dir):
 # TESTING
 if __name__ == '__main__':
     # zip_file = fetch_static("2025-12-12", "data")
-    # zip_dir = zip_to_txt(zip_file)
+    # zip_dir = extract_zip(zip_file)
     # txt_to_csv(zip_dir)
     realtime_file = fetch_realtime("2025-12-12", "data", feed='TripUpdates', hour=10)
     extracted = extract_7z(realtime_file, feed='TripUpdates', hour=10)
