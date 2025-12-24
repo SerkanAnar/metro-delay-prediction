@@ -128,11 +128,12 @@ def fetch_realtime(date, target_dir, feed="VehiclePositions", hour=None, wait_se
     return file_path
 
 
-def extract_7z(target_dir):
+def extract_7z(target_dir, feed="VehiclePositions"):
     """
     Extracts .7z files into its own folder in the target directory
     
     :param target_dir: Target .7z file to extract
+    :param feed:       Specifies extraction folder [ServiceAlerts, TripUpdates, VehiclePositions]
     :return:           Path to the folder with the extracted files
     """
 
@@ -142,6 +143,7 @@ def extract_7z(target_dir):
     
     output_dir = os.path.join(base_dir, 'realtime')
     output_dir = os.path.join(output_dir, base_name)
+    output_dir = os.path.join(output_dir, feed)
     output_dir = Path(os.path.join(output_dir, 'raw'))
     output_dir.mkdir(parents=True, exist_ok=True)
     
@@ -165,7 +167,7 @@ def flatten_extracted_structure(target_dir):
     
     raw_dir = Path(target_dir)
     
-    for path in raw_dir.glob("sl/VehiclePositions/*/*/*/*"):
+    for path in raw_dir.glob("sl/*/*/*/*/*"):
         for item in path.iterdir():
             shutil.move(str(item), raw_dir / item.name)
             
@@ -207,7 +209,7 @@ if __name__ == '__main__':
     # zip_file = fetch_static("2025-12-12", "data")
     # zip_dir = zip_to_txt(zip_file)
     # txt_to_csv(zip_dir)
-    # realtime_file = fetch_realtime("2025-12-17", "data", hour=10)
-    # extract_7z(realtime_file)
-    flatten_extracted_structure("data/realtime/2025-12-17/raw")
+    realtime_file = fetch_realtime("2025-12-17", "data", feed='TripUpdates', hour=10)
+    extracted = extract_7z(realtime_file, feed='TripUpdates')
+    flatten_extracted_structure(extracted)
     # pb_to_json("data/2025-12-12")
