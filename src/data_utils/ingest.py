@@ -146,7 +146,7 @@ def extract_7z(target_dir, feed="VehiclePositions", hour=None):
     output_dir = os.path.join(output_dir, feed)
     output_dir = Path(os.path.join(output_dir, 'raw'))
     if hour:
-        output_dir = Path(os.path.join(output_dir, hour))
+        output_dir = Path(os.path.join(output_dir, str(hour)))
     output_dir.mkdir(parents=True, exist_ok=True)
     
     with py7zr.SevenZipFile(zip_path, mode="r") as z:
@@ -211,7 +211,7 @@ if __name__ == '__main__':
     # zip_file = fetch_static("2025-12-12", "data")
     # zip_dir = zip_to_txt(zip_file)
     # txt_to_csv(zip_dir)
-    realtime_file = fetch_realtime("2025-12-17", "data", feed='TripUpdates', hour=10)
+    realtime_file = fetch_realtime("2025-12-12", "data", feed='TripUpdates', hour=10)
     extracted = extract_7z(realtime_file, feed='TripUpdates', hour=10)
     flatten_extracted_structure(extracted)
     # pb_to_json("data/2025-12-12")
