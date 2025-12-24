@@ -15,6 +15,7 @@ def filter_routes(original_path, target_path):
         :param target_path:     Path where the filtered csv should be saved, including filename
         :return:                Set of relevant route ids
     """
+
     if not os.path.exists(target_path):
         relevant_line_names = ['Blå linjen', 'Röda linjen', 'Gröna linjen']
         df = pd.read_csv(original_path, dtype={'route_id':str})
@@ -35,6 +36,7 @@ def filter_trips(original_path, target_path, relevant_route_ids):
         :param relevant_route_ids:  Set of relevant route ids
         :return:                    Set of relevant shape ids
     """
+
     if not os.path.exists(target_path):
         df = pd.read_csv(original_path, dtype={'route_id':str})
         filtered_df = df[df['route_id'].isin(relevant_route_ids)]
@@ -53,6 +55,7 @@ def filter_shapes(original_path, target_path, relevant_shape_ids):
         :param target_path:         Path where the filtered csv should be saved, including filename
         :param relevant_shape_ids:  Set of relevant shape ids
     """
+
     if not os.path.exists(target_path):
         df = pd.read_csv(original_path, dtype={'shape_id':str})
         filtered_df = df[df['shape_id'].isin(relevant_shape_ids)]
@@ -68,6 +71,7 @@ def filter_stop_times(original_path, target_path, relevant_trip_ids):
         :param relevant_trip_ids:   Set of relevant trip ids
         :return:                    Set of relevant stop ids
     """
+
     if not os.path.exists(target_path):
         df = pd.read_csv(original_path, dtype={'trip_id':str})
         filtered_df = df[df['trip_id'].isin(relevant_trip_ids)]
@@ -86,6 +90,7 @@ def filter_stops(original_path, target_path, relevant_stop_ids):
         :param target_path:         Path where the filtered csv should be saved, including filename
         :param relevant_stop_ids:   Set of relevant stop ids
     """
+
     if not os.path.exists(target_path):
         df = pd.read_csv(original_path, dtype={'stop_id':str})
         filtered_df = df[df['stop_id'].isin(relevant_stop_ids)]
@@ -99,6 +104,7 @@ def get_trip_ids(path):
         :param path:    Path to the filtered trips.csv file
         :return:        Set of relevant trip ids
     """
+
     df = pd.read_csv(path, dtype={'trip_id':str})
     relevant_trip_ids = set(df['trip_id'])
     return relevant_trip_ids
@@ -111,6 +117,7 @@ def compare_files(original_path, filtered_path):
         :param original_path:   Path to the original csv file
         :param filtered_path:   Path to the filtered csv file
     """
+
     if os.path.exists(original_path) and os.path.exists(filtered_path):
         df_original = pd.read_csv(original_path)
         df_filtered = pd.read_csv(filtered_path)
@@ -129,7 +136,6 @@ def pb_to_json(target_dir):
     """
 
     feed = gtfs_realtime_pb2.FeedMessage()
-
     with open(f'{target_dir}.pb', 'rb') as f:
         feed.ParseFromString(f.read())
 
@@ -156,6 +162,7 @@ def filter_TU_snapshot(snapshot, relevant_trip_ids):
         :param relevant_trip_ids:   Set of relevant trip ids
         :return:                    Filtered snapshot
     """
+
     relevant_entities = []
     for entity in snapshot.get('entity', []):
         trip = entity.get('trip_update', {}).get('trip', {}).get('trip_id')
@@ -173,6 +180,7 @@ def filter_VP_snapshot(snapshot, relevant_trip_ids):
         :param relevant_trip_ids:   Set of relevant trip ids
         :return:                    Filtered snapshot
     """
+
     relevant_entities = []
     for entity in snapshot.get('entity', []):
         trip = entity.get('vehicle', {}).get('trip', {}).get('trip_id')
@@ -182,8 +190,15 @@ def filter_VP_snapshot(snapshot, relevant_trip_ids):
     return snapshot
 
 
-def preprocess_and_aggregate_VT(DATA_ROOT, date, relevant_trip_ids):
-    # First, we would like to convert all of the .pb files to .json
+def preprocess_and_aggregate_VP(DATA_ROOT, date, relevant_trip_ids):
+    """
+        Filters and aggregates VehiclePosition data into a single file
+
+        :param DATA_ROOT:           Data directory containing the GTFS data folders /static and /realtime
+        :param date:                The date of the dataset to process
+        :param relevant_trip_ids:   Set of relevant trip ids
+    """
+
     raw_RT_dir = DATA_ROOT / 'realtime' / date / 'VehiclePositions' / 'raw'
     output_dir = DATA_ROOT / 'realtime' / date / 'VehiclePositions' / 'hourly'
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -221,6 +236,14 @@ def preprocess_and_aggregate_VT(DATA_ROOT, date, relevant_trip_ids):
 
 
 def preprocess_and_aggregate_TU(DATA_ROOT, date, relevant_trip_ids):
+    """
+        Filters and aggregates TripUpdates data into a single file
+
+        :param DATA_ROOT:           Data directory containing the GTFS data folders /static and /realtime
+        :param date:                The date of the dataset to process
+        :param relevant_trip_ids:   Set of relevant trip ids
+    """
+
     raw_TU_dir = DATA_ROOT / 'realtime' / date / 'TripUpdates' / 'raw'
     output_dir = DATA_ROOT / 'realtime' / date / 'TripUpdates' / 'hourly'
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -263,7 +286,7 @@ def filter_static(original_paths, filtered_dir):
 
         :param original_paths:  Dictionary mapping filenames to original csv paths
         :param filtered_dir:    Path to the directory where the filtered csv files are saved
-        :return: Set of relevant trip ids
+        :return:                Set of relevant trip ids
     """
 
     routes_output_dir = filtered_dir / "routes.csv"
@@ -300,7 +323,7 @@ def filter_data_for_date(DATA_ROOT, date):
     filtered_dir.mkdir(exist_ok=True)
 
     relevant_trip_ids = filter_static(static_original_paths, filtered_dir)
-    preprocess_and_aggregate_VT(DATA_ROOT, date, relevant_trip_ids)
+    preprocess_and_aggregate_VP(DATA_ROOT, date, relevant_trip_ids)
     preprocess_and_aggregate_TU(DATA_ROOT, date, relevant_trip_ids)
 
 
@@ -310,6 +333,7 @@ def filter_irrelevant_files(DATA_ROOT, date):
             :param1 DATA_ROOT:  Data directory containing the GTFS data folders /static and /realtime
             :param2 date:       The date of the dataset to process
     """
+
     output_dir = DATA_ROOT / "static" / date
     output_dir.mkdir(parents=True, exist_ok=True)
     keep = {"routes.csv", "shapes.csv", "stop_times.csv", "stops.csv", "trips.csv"}
