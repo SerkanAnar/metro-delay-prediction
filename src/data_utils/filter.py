@@ -5,6 +5,7 @@ from pathlib import Path
 from ingest import pb_to_json
 from tqdm import tqdm
 
+
 def filter_routes(original_path, target_path):
     """
         Filters out non-metro routes from routes.csv and creates a filtered csv file
@@ -95,7 +96,7 @@ def get_trip_ids(path):
         Finds relevant trip ids in the filtered trips.csv file
 
         :param path:    Path to the filtered trips.csv file
-        :returns:       Set of relevant trip ids
+        :return:        Set of relevant trip ids
     """
     df = pd.read_csv(path, dtype={'trip_id':str})
     relevant_trip_ids = set(df['trip_id'])
@@ -119,6 +120,13 @@ def compare_files(original_path, filtered_path):
 
 
 def filter_TU_snapshot(snapshot, relevant_trip_ids):
+    """
+        Filters TripUpdates feed by trip ids
+
+        :param snapshot:            Snapshot of TripUpdates at a given second
+        :param relevant_trip_ids:   Set of relevant trip ids
+        :return:                    Filtered snapshot
+    """
     relevant_entities = []
     for entity in snapshot.get('entity', []):
         trip = entity.get('trip_update', {}).get('trip', {}).get('trip_id')
@@ -128,7 +136,14 @@ def filter_TU_snapshot(snapshot, relevant_trip_ids):
     return snapshot
 
 
-def filter_RT_snapshot(snapshot, relevant_trip_ids):
+def filter_VP_snapshot(snapshot, relevant_trip_ids):
+    """
+        Filters VehiclePositions feed by trip ids
+
+        :param snapshot:            Snapshot of VehiclePositions at a given second
+        :param relevant_trip_ids:   Set of relevant trip ids
+        :return:                    Filtered snapshot
+    """
     relevant_entities = []
     for entity in snapshot.get('entity', []):
         trip = entity.get('vehicle', {}).get('trip', {}).get('trip_id')
@@ -138,7 +153,7 @@ def filter_RT_snapshot(snapshot, relevant_trip_ids):
     return snapshot
 
 
-def preprocess_and_aggregate_RT(DATA_ROOT, date, relevant_trip_ids):
+def preprocess_and_aggregate_VT(DATA_ROOT, date, relevant_trip_ids):
     # First, we would like to convert all of the .pb files to .json
     raw_RT_dir = DATA_ROOT / 'realtime' / date / 'VehiclePositions' / 'raw'
     output_dir = DATA_ROOT / 'realtime' / date / 'VehiclePositions' / 'hourly'
@@ -159,7 +174,7 @@ def preprocess_and_aggregate_RT(DATA_ROOT, date, relevant_trip_ids):
         for json_file in tqdm(json_files, desc=f"Filtering snapshots for hour {hour}"):
             with open(json_file, 'r', encoding='utf-8') as f:
                 snapshot = json.load(f)
-            snapshot = filter_RT_snapshot(snapshot, relevant_trip_ids)
+            snapshot = filter_VP_snapshot(snapshot, relevant_trip_ids)
             if snapshot.get('entity'):
                 hourly_snapshots.append({
                     'timestamp': snapshot['header']['timestamp'],
@@ -256,8 +271,9 @@ def filter_data_for_date(DATA_ROOT, date):
     filtered_dir.mkdir(exist_ok=True)
 
     relevant_trip_ids = filter_static(static_original_paths, filtered_dir)
-    preprocess_and_aggregate_RT(DATA_ROOT, date, relevant_trip_ids)
+    preprocess_and_aggregate_VT(DATA_ROOT, date, relevant_trip_ids)
     preprocess_and_aggregate_TU(DATA_ROOT, date, relevant_trip_ids)
+
 
 def filter_irrelevant_files(DATA_ROOT, date):
     """
