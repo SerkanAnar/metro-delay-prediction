@@ -178,34 +178,6 @@ def flatten_extracted_structure(target_dir):
     return raw_dir
 
 
-def pb_to_json(target_dir):
-    """
-        Converts .pb files into .json
-        
-        :param target_dir: Directory the .pb file is in, with the file name, excluding ".pb"
-        :return:           Path of the saved .json file
-    """
-
-    feed = gtfs_realtime_pb2.FeedMessage()
-
-    with open(f'{target_dir}.pb', 'rb') as f:
-        feed.ParseFromString(f.read())
-
-    feed_dict = MessageToDict(
-        feed,
-        preserving_proto_field_name=True
-    )
-
-    with open(f'{target_dir}.json', 'w', encoding='utf-8') as f:
-        json.dump(feed_dict, f, indent=2)
-    
-    pb_path = Path(f'{target_dir}.pb')
-    pb_path.unlink()
-        
-    print(f"Converted {target_dir}.pb to {target_dir}.json.")
-    return f'{target_dir}.json'
-
-
 # TESTING
 if __name__ == '__main__':
     # zip_file = fetch_static("2025-12-12", "data")

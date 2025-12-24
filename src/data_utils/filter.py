@@ -2,7 +2,6 @@ import pandas as pd
 import os
 import json
 from pathlib import Path
-from ingest import pb_to_json
 from tqdm import tqdm
 
 
@@ -117,6 +116,34 @@ def compare_files(original_path, filtered_path):
         print(df_original.info())
         print(f'Printing information of {filtered_path[filtered_path.index('/')+1:]}')
         print(df_filtered.info())
+
+
+def pb_to_json(target_dir):
+    """
+        Converts .pb files into .json
+        
+        :param target_dir: Directory the .pb file is in, with the file name, excluding ".pb"
+        :return:           Path of the saved .json file
+    """
+
+    feed = gtfs_realtime_pb2.FeedMessage()
+
+    with open(f'{target_dir}.pb', 'rb') as f:
+        feed.ParseFromString(f.read())
+
+    feed_dict = MessageToDict(
+        feed,
+        preserving_proto_field_name=True
+    )
+
+    with open(f'{target_dir}.json', 'w', encoding='utf-8') as f:
+        json.dump(feed_dict, f, indent=2)
+    
+    pb_path = Path(f'{target_dir}.pb')
+    pb_path.unlink()
+        
+    print(f"Converted {target_dir}.pb to {target_dir}.json.")
+    return f'{target_dir}.json'
 
 
 def filter_TU_snapshot(snapshot, relevant_trip_ids):
