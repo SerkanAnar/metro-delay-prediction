@@ -279,7 +279,7 @@ def filter_static(original_paths):
     """
 
     print("filtering static data...")
-    
+
     relevant_route_ids = filter_routes(original_paths['routes'])
     relevant_shape_ids = filter_trips(original_paths['trips'], relevant_route_ids)
     relevant_trip_ids = get_trip_ids(original_paths['trips'])
@@ -291,7 +291,7 @@ def filter_static(original_paths):
     return relevant_trip_ids
 
 
-def filter_data_for_date(DATA_ROOT, date):
+def filter_data_for_date(target_path, date):
     """
         Filters GTFS data for a specific date
 
@@ -300,28 +300,28 @@ def filter_data_for_date(DATA_ROOT, date):
     """
 
     # Handle static and RT data
-    static_directory = DATA_ROOT / "static" / date
-    static_original_paths = {f.stem: f for f in static_directory.glob("*.csv")}
+    # static_directory = target_path / "static" / date
+    static_original_paths = {f.stem: f for f in target_path.glob("*.csv")}
 
     relevant_trip_ids = filter_static(static_original_paths)
-    preprocess_and_aggregate_VP(DATA_ROOT, date, relevant_trip_ids)
-    preprocess_and_aggregate_TU(DATA_ROOT, date, relevant_trip_ids)
+    # preprocess_and_aggregate_VP(DATA_ROOT, date, relevant_trip_ids)
+    # preprocess_and_aggregate_TU(DATA_ROOT, date, relevant_trip_ids)
 
 
-def filter_irrelevant_files(DATA_ROOT, date):
+def filter_irrelevant_files(target_dir, date):
     """
         Filters out irrelevant files in the specified data directory
             :param1 DATA_ROOT:  Data directory containing the GTFS data folders /static and /realtime
             :param2 date:       The date of the dataset to process
     """
 
-    output_dir = DATA_ROOT / "static" / date
-    output_dir.mkdir(parents=True, exist_ok=True)
+    # output_dir = DATA_ROOT / "static" / date
+    # output_dir.mkdir(parents=True, exist_ok=True)
     keep = {"routes.csv", "shapes.csv", "stop_times.csv", "stops.csv", "trips.csv"}
-    for path in output_dir.iterdir():
+    for path in target_dir.iterdir():
         if path.is_file() and path.name not in keep:
             path.unlink()
-    print(f"Removed unnecessary files in {output_dir}")
+    print(f"Removed unnecessary files in {target_dir}")
 
 
 if __name__ == '__main__':
