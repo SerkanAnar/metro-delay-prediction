@@ -79,15 +79,16 @@ def txt_to_csv(target_dir):
     return directory
 
 
-def fetch_realtime(date, target_dir, feed="VehiclePositions", hour=None, wait_seconds=30):
+def fetch_realtime(date, target_dir, feed="VehiclePositions", hour=None, wait_seconds=60, max_retries=65):
     """
         Fetches real time public transport data using Trafiklab's KoDa API
         
         :param date:         Specifies which date the data is fetched from, in YYYY-MM-DD format
         :param target_dir:   Directory that the API output should be saved at, without file name
         :param feed:         Specifies which feed [ServiceAlerts, TripUpdates, VehiclePositions] to fetch from
-        :param hour:         Use in [00-23] format to specify hour; fetches entire day if empty
+        :param hour:         Use in [0-23] format to specify hour; fetches entire day if empty
         :param wait_seconds: Number of seconds the function waits before retrying API call
+        :param max_retries:  Number of maximum retries
         :return:             Path of the saved .zip folder
     """
     load_dotenv()
@@ -98,26 +99,27 @@ def fetch_realtime(date, target_dir, feed="VehiclePositions", hour=None, wait_se
     else:
         url = f'https://api.koda.trafiklab.se/KoDa/api/v2/gtfs-rt/sl/{feed}?date={date}&hour={hour}&key={api_key}'
     
-    while True:
+    for attempt in range(1, max_retries+1):
         try:
-            response = requests.get(url, timeout=(5,10))
+            response = requests.get(url, timeout=10)
         
-        except requests.exceptions.ReadTimeout:
-            print(f"Retrying connection in {wait_seconds} seconds")
+        except Exception as e:
+            print(f"[{attempt}/{max_retries}] Request failed ({e}), retrying connection in {wait_seconds} seconds")
             time.sleep(wait_seconds)
             continue
         
-        response.raise_for_status()
-        content_type = response.headers.get("Content-Type", "").lower()
-
-        if "application/json" in content_type:
-            data = response.json()
-            if "message" in data and "being processed" in data["message"]:
-                print(f"Still processing, retrying in {wait_seconds} seconds")
-                time.sleep(wait_seconds)
-                continue
-
-        break
+        if response.status_code == 202:
+            print(f"[{attempt}/{max_retries}] Still processing, retrying connection in {wait_seconds} seconds")
+            time.sleep(wait_seconds)
+            continue
+        
+        if response.status_code == 200:
+            break
+        
+        print(f"[{attempt}/{max_retries}] Unexpected status {response.status_code}: {response.text}, retrying connection in {wait_seconds} seconds")
+    else:
+        print(f"Max retries reached, skipping date {date}")
+        return None
     
     file_path = os.path.join(target_dir, f'{date}.7z')
     
