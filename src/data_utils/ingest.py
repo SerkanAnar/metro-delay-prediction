@@ -146,7 +146,7 @@ def extract_7z(target_dir, feed="VehiclePositions", hour=None):
     output_dir = os.path.join(output_dir, base_name)
     output_dir = os.path.join(output_dir, feed)
     output_dir = Path(os.path.join(output_dir, 'raw'))
-    if hour:
+    if hour is not None:
         output_dir = Path(os.path.join(output_dir, str(hour)))
     output_dir.mkdir(parents=True, exist_ok=True)
     
