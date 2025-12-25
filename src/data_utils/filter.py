@@ -180,52 +180,53 @@ def filter_VP_snapshot(snapshot, relevant_trip_ids):
     return snapshot
 
 
-def preprocess_and_aggregate_VP(DATA_ROOT, date, relevant_trip_ids):
+def preprocess_and_aggregate_VP(target_path, date, relevant_trip_ids):
     """
         Filters and aggregates VehiclePosition data into a single file
 
-        :param DATA_ROOT:           Data directory containing the GTFS data folders /static and /realtime
+        :param target_path:         Path to the raw data for an hour, raw/[hour]
         :param date:                The date of the dataset to process
         :param relevant_trip_ids:   Set of relevant trip ids
     """
 
-    raw_RT_dir = DATA_ROOT / 'realtime' / date / 'VehiclePositions' / 'raw'
-    output_dir = DATA_ROOT / 'realtime' / date / 'VehiclePositions' / 'hourly'
+    raw_RT_dir = target_path
+    output_dir = target_path.parent.parent / 'hourly'
     output_dir.mkdir(parents=True, exist_ok=True)
-    for folder in raw_RT_dir.iterdir():
-        if not folder.is_dir(): continue
-        for f in folder.iterdir():
-            if not f.suffix == '.pb': continue
-            path_to_file = folder / f.stem
-            pb_to_json(path_to_file)
+    
+    # Convert .pb files to .json
+    if not raw_RT_dir.is_dir(): return
+    for f in raw_RT_dir.iterdir():
+        if not f.suffix == '.pb': continue
+        path_to_file = raw_RT_dir / f.stem
+        pb_to_json(path_to_file)
+    
+    hour = raw_RT_dir.name
+    hourly_snapshots = []
+    if os.path.exists(output_dir / hour): return
+    print('Filtering RT json files')
+    json_files = list(raw_RT_dir.glob("*.json"))
+    for json_file in tqdm(json_files, desc=f'Filtering snapshots for hour {hour}'):
+        with open(json_file, 'r', encoding='utf-8') as f:
+            snapshot = json.load(f)
+        snapshot = filter_VP_snapshot(snapshot, relevant_trip_ids)
+        if snapshot.get('entity'):
+            hourly_snapshots.append({
+                'timestamp': snapshot['header']['timestamp'],
+                'entity': snapshot['entity']
+            })
+    print('Done filtering RT VP json files')
+    print(f'Writing snapshots to {hour}.json')
+    with open(output_dir / f'{hour}.json', 'w', encoding='utf-8') as f:
+        json.dump({
+            'date': date,
+            'hour': hour,
+            'snapshots': hourly_snapshots
+        }, f, indent=2)
+    print(f'Preprocessed, filtered and aggregated hour {hour} with {len(hourly_snapshots)} snapshots')
 
-        hour = folder.name
-        hourly_snapshots = []
-        if os.path.exists(output_dir / hour): continue
 
-        print('Filtering RT json files')
-        json_files = list(folder.glob("*.json"))
-        for json_file in tqdm(json_files, desc=f"Filtering snapshots for hour {hour}"):
-            with open(json_file, 'r', encoding='utf-8') as f:
-                snapshot = json.load(f)
-            snapshot = filter_VP_snapshot(snapshot, relevant_trip_ids)
-            if snapshot.get('entity'):
-                hourly_snapshots.append({
-                    'timestamp': snapshot['header']['timestamp'],
-                    'entity': snapshot['entity']
-                })
-        print('Done filtering RT json files')
-        print(f'Writing snapshots to {hour}.json')
-        with open(output_dir / f'{hour}.json', 'w', encoding='utf-8') as f:
-            json.dump({
-                'date': date,
-                'hour': hour,
-                'snapshots': hourly_snapshots
-            }, f, indent=2)
-        print(f'Preprocessed, filtered and aggregated hour {hour} with {len(hourly_snapshots)} snapshots')
-
-
-def preprocess_and_aggregate_TU(DATA_ROOT, date, relevant_trip_ids):
+# TODO: Refactor this code to work like preprocess_and_aggregate_VP
+def preprocess_and_aggregate_TU(target_path, date, relevant_trip_ids):
     """
         Filters and aggregates TripUpdates data into a single file
 
@@ -279,7 +280,7 @@ def filter_static(original_paths):
     """
 
     print("filtering static data...")
-
+    
     relevant_route_ids = filter_routes(original_paths['routes'])
     relevant_shape_ids = filter_trips(original_paths['trips'], relevant_route_ids)
     relevant_trip_ids = get_trip_ids(original_paths['trips'])
@@ -291,21 +292,42 @@ def filter_static(original_paths):
     return relevant_trip_ids
 
 
-def filter_data_for_date(target_path, date):
+def filter_realtime_data_TU(target_path, date):
     """
-        Filters GTFS data for a specific date
+        Filters GTFS realtime TU data for a specific date
 
         :param DATA_ROOT:   Data directory containing the GTFS data folders /static and /realtime
         :param date:        The date of the dataset to process
     """
 
-    # Handle static and RT data
-    # static_directory = target_path / "static" / date
-    static_original_paths = {f.stem: f for f in target_path.glob("*.csv")}
+    path_to_trips = target_path.parent.parent.parent.parent.parent / 'static' / date / 'trips.csv'
+    relevant_trip_ids = get_trip_ids(path_to_trips)
+    preprocess_and_aggregate_TU(target_path, date, relevant_trip_ids)
 
-    relevant_trip_ids = filter_static(static_original_paths)
-    # preprocess_and_aggregate_VP(DATA_ROOT, date, relevant_trip_ids)
-    # preprocess_and_aggregate_TU(DATA_ROOT, date, relevant_trip_ids)
+
+def filter_realtime_data_VP(target_path, date):
+    """
+        Filters GTFS realtime VP data for a specific date
+
+        :param DATA_ROOT:   Data directory containing the GTFS data folders /static and /realtime
+        :param date:        The date of the dataset to process
+    """
+
+    path_to_trips = target_path.parent.parent.parent.parent.parent / 'static' / date / 'trips.csv'
+    relevant_trip_ids = get_trip_ids(path_to_trips)
+    preprocess_and_aggregate_VP(target_path, date, relevant_trip_ids)
+
+
+def filter_static_data_for_date(target_path, date):
+    """
+        Filters GTFS static data for a specific date
+
+        :param DATA_ROOT:   Data directory containing the GTFS data folders /static and /realtime
+        :param date:        The date of the dataset to process
+    """
+
+    static_original_paths = {f.stem: f for f in target_path.glob("*.csv")}
+    filter_static(static_original_paths)
 
 
 def filter_irrelevant_files(target_dir, date):
@@ -315,8 +337,6 @@ def filter_irrelevant_files(target_dir, date):
             :param2 date:       The date of the dataset to process
     """
 
-    # output_dir = DATA_ROOT / "static" / date
-    # output_dir.mkdir(parents=True, exist_ok=True)
     keep = {"routes.csv", "shapes.csv", "stop_times.csv", "stops.csv", "trips.csv"}
     for path in target_dir.iterdir():
         if path.is_file() and path.name not in keep:
@@ -328,4 +348,4 @@ if __name__ == '__main__':
     DATA_ROOT = Path('data')
     date = '2025-12-12'
     filter_irrelevant_files(DATA_ROOT, date)
-    filter_data_for_date(DATA_ROOT, date)
+    filter_static_data_for_date(DATA_ROOT, date)
