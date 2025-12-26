@@ -58,7 +58,7 @@ def get_features(target_path, trip_to_line):
             stats[line_name]["speed_sum"] += speed
             stats[line_name]["unique_trips"].add(trip_id)
 
-            if speed >= 0.5:
+            if speed <= 0.5:
                 stats[line_name]["stopped_count"] += 1
     
     features = []
