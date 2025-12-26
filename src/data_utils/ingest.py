@@ -108,19 +108,16 @@ def fetch_realtime(date, target_dir, feed="VehiclePositions", hour=None, wait_se
             time.sleep(wait_seconds)
             continue
         
-        content_type = response.headers.get("Content-Type", "").lower()
-        if "application/json" in content_type:
-            data = response.json()
-            if "message" in data and "being prepared" in data["message"]:
-                print(f"[{attempt}/{max_retries}] Data is being prepared, retrying connection in {wait_seconds} seconds")
-                time.sleep(wait_seconds)
-                continue
-            if "message" in data and "being processed" in data["message"]:
-                print(f"[{attempt}/{max_retries}] Still processing, retrying connection in {wait_seconds} seconds")
-                time.sleep(wait_seconds)
-                continue
-            
-        break
+        if response.status_code == 202:
+            print(f"[{attempt}/{max_retries}] Data is being prepared, retrying connection in {wait_seconds} seconds")
+            time.sleep(wait_seconds)
+            continue
+        if response.status_code == 200:
+            break
+        else:
+            print(f"[{attempt}/{max_retries}] Unexpected status code {response.status_code}, retrying in {wait_seconds} seconds")
+            time.sleep(wait_seconds)
+            continue
     else:
         print(f"Max retries reached, skipping date {date}")
         return None
