@@ -39,9 +39,9 @@ def init_stats():
 
 def get_features(target_path, trip_to_line):
     stats = {
-        "green": init_stats(),
-        "red": init_stats(),
-        "blue": init_stats()
+        "Gröna linjen": init_stats(),
+        "Röda linjen": init_stats(),
+        "Blå linjen": init_stats()
     }
     
     with open(target_path, 'r', encoding="utf-8") as f:
