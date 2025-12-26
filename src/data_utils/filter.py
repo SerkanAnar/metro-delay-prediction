@@ -5,6 +5,7 @@ from pathlib import Path
 from tqdm import tqdm
 from google.transit import gtfs_realtime_pb2
 from google.protobuf.json_format import MessageToDict
+import shutil
 
 
 def filter_routes(original_path):
@@ -224,51 +225,59 @@ def preprocess_and_aggregate_VP(target_path, date, relevant_trip_ids):
         }, f, indent=2)
     print(f'Preprocessed, filtered and aggregated hour {hour} with {len(hourly_snapshots)} snapshots')
 
+    print(f'removing directory {raw_RT_dir}')
+    if raw_RT_dir.exists() and raw_RT_dir.is_dir():
+        shutil.rmtree(raw_RT_dir)
+        print(f'Deleted raw directory {raw_RT_dir}')
 
-# TODO: Refactor this code to work like preprocess_and_aggregate_VP
 def preprocess_and_aggregate_TU(target_path, date, relevant_trip_ids):
     """
         Filters and aggregates TripUpdates data into a single file
 
-        :param DATA_ROOT:           Data directory containing the GTFS data folders /static and /realtime
+        :param target_path:         Path to the raw data for an hour, raw/[hour]
         :param date:                The date of the dataset to process
         :param relevant_trip_ids:   Set of relevant trip ids
     """
 
-    raw_TU_dir = DATA_ROOT / 'realtime' / date / 'TripUpdates' / 'raw'
-    output_dir = DATA_ROOT / 'realtime' / date / 'TripUpdates' / 'hourly'
+    raw_TU_dir = target_path
+    output_dir = target_path.parent.parent / 'hourly'
     output_dir.mkdir(parents=True, exist_ok=True)
-    for folder in raw_TU_dir.iterdir():
-        if not folder.is_dir(): continue
-        for f in folder.iterdir():
-            if not f.suffix == '.pb': continue
-            path_to_file = folder / f.stem
-            pb_to_json(path_to_file)
-        
-        hour = folder.name
-        hourly_snapshots = []
-        if os.path.exists(output_dir / hour): continue
+    
+    # Convert .pb files to .json
+    if not raw_TU_dir.is_dir(): return
+    for f in raw_TU_dir.iterdir():
+        if not f.suffix == '.pb': continue
+        path_to_file = raw_TU_dir / f.stem
+        pb_to_json(path_to_file)
+    
+    hour = raw_TU_dir.name
+    hourly_snapshots = []
+    if os.path.exists(output_dir / hour): return
+    print('Filtering RT json files')
+    json_files = list(raw_TU_dir.glob("*.json"))
+    for json_file in tqdm(json_files, desc=f'Filtering snapshots for hour {hour}'):
+        with open(json_file, 'r', encoding='utf-8') as f:
+            snapshot = json.load(f)
+        snapshot = filter_VP_snapshot(snapshot, relevant_trip_ids)
+        if snapshot.get('entity'):
+            hourly_snapshots.append({
+                'timestamp': snapshot['header']['timestamp'],
+                'entity': snapshot['entity']
+            })
+    print('Done filtering RT VP json files')
+    print(f'Writing snapshots to {hour}.json')
+    with open(output_dir / f'{hour}.json', 'w', encoding='utf-8') as f:
+        json.dump({
+            'date': date,
+            'hour': hour,
+            'snapshots': hourly_snapshots
+        }, f, indent=2)
+    print(f'Preprocessed, filtered and aggregated hour {hour} with {len(hourly_snapshots)} snapshots')
 
-        print('Filtering TU json files')
-        json_files = list(folder.glob("*.json"))
-        for json_file in tqdm(json_files, desc=f'Filtering snapshots for hour {hour}'):
-            with open(json_file, 'r', encoding='utf-8') as f:
-                snapshot = json.load(f)
-            snapshot = filter_TU_snapshot(snapshot, relevant_trip_ids)
-            if snapshot.get('entity'):
-                hourly_snapshots.append({
-                    'timestamp': snapshot['header']['timestamp'],
-                    'entity': snapshot['entity']
-                })
-        print('Done filtering TU json files')
-        print(f'Writing snapshots to {hour}.json')
-        with open(output_dir / f'{hour}.json', 'w', encoding='utf-8') as f:
-            json.dump({
-                'date': date,
-                'hour': hour,
-                'snapshots': hourly_snapshots
-            }, f, indent=2)
-        print(f'Preprocessed, filtered and aggregated TU hour {hour} with {len(hourly_snapshots)} snapshots')
+    print(f'removing directory {raw_TU_dir}')
+    if raw_TU_dir.exists() and raw_TU_dir.is_dir():
+        shutil.rmtree(raw_TU_dir)
+        print(f'Deleted raw directory {raw_TU_dir}')
 
 
 def filter_static(original_paths):
