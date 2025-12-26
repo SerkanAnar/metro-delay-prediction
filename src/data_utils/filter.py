@@ -5,6 +5,7 @@ from pathlib import Path
 from tqdm import tqdm
 from google.transit import gtfs_realtime_pb2
 from google.protobuf.json_format import MessageToDict
+import shutil
 
 
 def filter_routes(original_path):
@@ -224,12 +225,16 @@ def preprocess_and_aggregate_VP(target_path, date, relevant_trip_ids):
         }, f, indent=2)
     print(f'Preprocessed, filtered and aggregated hour {hour} with {len(hourly_snapshots)} snapshots')
 
+    print(f'removing directory {raw_RT_dir}')
+    if raw_RT_dir.exists() and raw_RT_dir.is_dir():
+        shutil.rmtree(raw_RT_dir)
+        print(f'Deleted raw directory {raw_RT_dir}')
 
 def preprocess_and_aggregate_TU(target_path, date, relevant_trip_ids):
     """
         Filters and aggregates TripUpdates data into a single file
 
-        :param DATA_ROOT:           Data directory containing the GTFS data folders /static and /realtime
+        :param target_path:         Path to the raw data for an hour, raw/[hour]
         :param date:                The date of the dataset to process
         :param relevant_trip_ids:   Set of relevant trip ids
     """
@@ -268,6 +273,11 @@ def preprocess_and_aggregate_TU(target_path, date, relevant_trip_ids):
             'snapshots': hourly_snapshots
         }, f, indent=2)
     print(f'Preprocessed, filtered and aggregated hour {hour} with {len(hourly_snapshots)} snapshots')
+
+    print(f'removing directory {raw_TU_dir}')
+    if raw_TU_dir.exists() and raw_TU_dir.is_dir():
+        shutil.rmtree(raw_TU_dir)
+        print(f'Deleted raw directory {raw_TU_dir}')
 
 
 def filter_static(original_paths):
