@@ -32,7 +32,7 @@ def get_trip_to_line_mapping():
 def init_stats():
     return {
         "vehicle_count": 0,
-        "speed_sum": 0.0,
+        "speeds": list,
         "stopped_count": 0,
         "unique_trips": set()
     }
@@ -54,8 +54,7 @@ def get_features(target_path, trip_to_line):
             speed = vehicle["position"]["speed"]
 
             line_name = trip_to_line[trip_id]
-            stats[line_name]["vehicle_count"] += 1
-            stats[line_name]["speed_sum"] += speed
+            stats[line_name]["speeds"].append(speed)
             stats[line_name]["unique_trips"].add(trip_id)
 
             if speed <= 0.5:
@@ -67,9 +66,9 @@ def get_features(target_path, trip_to_line):
             "date": "2025-12-12",
             "hour": 10,
             "line": line,
-            "avg_speed": s["speed_sum"] / s["vehicle_count"],
+            "avg_speed": sum(s["speeds"]) / len(s["speeds"]),
             "num_active_trips": s["unique_trips"],
-            "frac_stopped": s["stopped_count"] / s["vehicle_count"]
+            "frac_stopped": s["stopped_count"] / len(s["speeds"])
         })
     
     return features
