@@ -31,7 +31,6 @@ def get_trip_to_line_mapping():
 
 def init_stats():
     return {
-        "vehicle_count": 0,
         "speeds": list,
         "stopped_count": 0,
         "unique_trips": set()
