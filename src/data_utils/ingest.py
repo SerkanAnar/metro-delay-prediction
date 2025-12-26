@@ -108,15 +108,19 @@ def fetch_realtime(date, target_dir, feed="VehiclePositions", hour=None, wait_se
             time.sleep(wait_seconds)
             continue
         
-        if response.status_code == 202:
-            print(f"[{attempt}/{max_retries}] Still processing, retrying connection in {wait_seconds} seconds")
-            time.sleep(wait_seconds)
-            continue
-        
-        if response.status_code == 200:
-            break
-        
-        print(f"[{attempt}/{max_retries}] Unexpected status {response.status_code}: {response.text}, retrying connection in {wait_seconds} seconds")
+        content_type = response.headers.get("Content-Type", "").lower()
+        if "application/json" in content_type:
+            data = response.json()
+            if "message" in data and "being prepared" in data["message"]:
+                print(f"[{attempt}/{max_retries}] Data is being prepared, retrying connection in {wait_seconds} seconds")
+                time.sleep(wait_seconds)
+                continue
+            if "message" in data and "being processed" in data["message"]:
+                print(f"[{attempt}/{max_retries}] Still processing, retrying connection in {wait_seconds} seconds")
+                time.sleep(wait_seconds)
+                continue
+            
+        break
     else:
         print(f"Max retries reached, skipping date {date}")
         return None
@@ -162,18 +166,24 @@ def extract_7z(target_dir, feed="VehiclePositions", hour=None):
     return output_dir
 
 
-def flatten_extracted_structure(target_dir):
+def flatten_extracted_structure(target_dir, hourly=False):
     """
     Flattens the file structure of the extracted realtime data
     
     :param target_dir: Directory of the extracted 7z files
+    :param hourly:     Optional, add to specify if only an hour should be flattened
     :return:           Path of the directory with all .pb files
     """
     
     raw_dir = Path(target_dir)
     
-    for path in raw_dir.glob("sl/*/*/*/*/*"):
-        for item in path.iterdir():
+    if hourly:
+        hourly_dir = list(raw_dir.glob("sl/*/*/*/*/*"))
+    else:
+        hourly_dir = list(raw_dir.glob("sl/*/*/*/*"))
+        
+    for hour_dir in hourly_dir:
+        for item in hour_dir.iterdir():
             shutil.move(str(item), raw_dir / item.name)
             
     shutil.rmtree(raw_dir / "sl")
