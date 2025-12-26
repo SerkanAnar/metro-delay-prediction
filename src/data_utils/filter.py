@@ -311,7 +311,7 @@ def filter_realtime_data_TU(target_path, date):
         :param date:        The date of the dataset to process
     """
 
-    path_to_trips = target_path.parent.parent.parent / 'static' / date / 'trips.csv'
+    path_to_trips = target_path.parent.parent.parent.parent / 'static' / date / 'trips.csv'
     relevant_trip_ids = get_trip_ids(path_to_trips)
     preprocess_and_aggregate_TU(target_path, date, relevant_trip_ids)
 
@@ -324,7 +324,7 @@ def filter_realtime_data_VP(target_path, date):
         :param date:        The date of the dataset to process
     """
 
-    path_to_trips = target_path.parent.parent.parent / 'static' / date / 'trips.csv'
+    path_to_trips = target_path.parent.parent.parent.parent / 'static' / date / 'trips.csv'
     relevant_trip_ids = get_trip_ids(path_to_trips)
     preprocess_and_aggregate_VP(target_path, date, relevant_trip_ids)
 
