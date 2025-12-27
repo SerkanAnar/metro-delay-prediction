@@ -118,11 +118,12 @@ def compare_files(original_path, filtered_path):
         print(df_filtered.info())
 
 
-def pb_to_json(target_dir):
+def pb_to_json(target_dir, verbose=True):
     """
         Converts .pb files into .json
         
         :param target_dir: Directory the .pb file is in, with the file name, excluding ".pb"
+        :verbose:          Set to false to skip outputs, can be good if pb_to_json is used on many files
         :return:           Path of the saved .json file
     """
 
@@ -141,7 +142,8 @@ def pb_to_json(target_dir):
     pb_path = Path(f'{target_dir}.pb')
     pb_path.unlink()
         
-    print(f"Converted {target_dir}.pb to {target_dir}.json.")
+    if verbose:
+        print(f"Converted {target_dir}.pb to {target_dir}.json")
     return f'{target_dir}.json'
 
 
