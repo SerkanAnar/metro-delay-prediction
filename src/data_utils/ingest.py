@@ -175,6 +175,60 @@ def fetch_realtime(date, target_dir, feed="VehiclePositions", hour=None, wait_se
     return file_path
 
 
+def fetch_realtime_live(target_dir, feed="VehiclePositions", wait_seconds=5, max_retries=5):
+    """
+    Fetches real time public transport data using Trafiklab's GTFS Regional Realtime Data API
+    
+    :param target_dir:   Directory that the API output should be saved at, without file name
+    :param feed:         Specifies which feed [ServiceAlerts, TripUpdates, VehiclePositions] to fetch from
+    :param wait_seconds: Number of seconds the function waits before retrying API call
+    :param max_retries:  Number of maximum retries
+    :return:             Path of the saved .pb file
+    """
+    
+    load_dotenv()
+    api_key = os.getenv("REALTIME_API_KEY")
+    
+    url = f'https://opendata.samtrafiken.se/gtfs-rt/sl/{feed}.pb?key={api_key}'
+    
+    date = datetime.today().strftime('%Y-%m-%d')
+    
+    for attempt in range(max_retries):
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+        except:
+            print(f'HTTP status {response.status_code}: {response.text}')
+            print(f'Retrying in {wait_seconds} seconds')
+            time.sleep(5)
+            continue
+        break
+    else:
+        print(f'Skipping static data fetch for {date}')
+        return None
+    
+    hour = datetime.now().strftime('%H')
+    minute = datetime.now().strftime('%M')
+    second = datetime.now().strftime('%S')
+    
+    file_path = os.path.join(target_dir,
+                             'realtime',
+                             f'{date}',
+                             f'{feed}',
+                             'raw',
+                             f'{hour}',
+                             f'{date}T{hour}-{minute}-{second}Z.pb')
+    
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    
+    with open(file_path, 'wb') as f:
+        f.write(response.content)
+        
+    print(f"Saved GTFS static file to {file_path}")
+    return file_path
+            
+
+
 def extract_7z(target_dir, feed="VehiclePositions", hour=None):
     """
     Extracts .7z files into its own folder in the target directory
@@ -237,7 +291,8 @@ if __name__ == '__main__':
     # zip_file = fetch_static("2025-12-12", "data")
     # zip_dir = extract_zip(zip_file)
     # txt_to_csv(zip_dir)
-    realtime_file = fetch_realtime("2025-12-12", "data", feed='TripUpdates', hour=10)
-    extracted = extract_7z(realtime_file, feed='TripUpdates', hour=10)
-    flatten_extracted_structure(extracted)
+    # realtime_file = fetch_realtime("2025-12-12", "data", feed='TripUpdates', hour=10)
+    # extracted = extract_7z(realtime_file, feed='TripUpdates', hour=10)
+    # flatten_extracted_structure(extracted)
     # pb_to_json("data/2025-12-12")
+    fetch_realtime_live("data")
