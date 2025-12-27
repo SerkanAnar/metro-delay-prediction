@@ -26,7 +26,12 @@ def fetch_static(date, target_dir):
     url = f'https://api.koda.trafiklab.se/KoDa/api/v2/gtfs-static/sl?date={date}&key={api_key}'
     
     response = requests.get(url)
-    response.raise_for_status()
+    try:
+        response.raise_for_status()
+    except:
+        print(f'HTTP status {response.status_code}: {response.text}')
+        print(f'Skipping static data fetch for {date}')
+        return None
     
     file_path = os.path.join(target_dir, f'{date}.zip')
     
@@ -35,6 +40,19 @@ def fetch_static(date, target_dir):
         
     print(f"Saved GTFS static file to {file_path}")
     return file_path
+
+
+def fetch_static_live(target_dir):
+    """
+    Fetches static planned public transport data from today using Trafiklab's GTFS Regional Static Data API
+    
+    :param target_dir: Directory that the API output should be saved at, without file name
+    """
+    
+    load_dotenv()
+    api_key = os.getenv("STATIC_API_KEY")
+    
+    url = f'https://opendata.samtrafiken.se/gtfs/sl/sl.zip?key={api_key}'
 
 
 def extract_zip(target_dir):
