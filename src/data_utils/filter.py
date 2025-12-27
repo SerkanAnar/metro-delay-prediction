@@ -118,12 +118,12 @@ def compare_files(original_path, filtered_path):
         print(df_filtered.info())
 
 
-def pb_to_json(target_dir, verbose=True):
+def pb_to_json(target_dir, verbose=False):
     """
         Converts .pb files into .json
         
         :param target_dir: Directory the .pb file is in, with the file name, excluding ".pb"
-        :verbose:          Set to false to skip outputs, can be good if pb_to_json is used on many files
+        :verbose:          Set to False to skip outputs, can be good if pb_to_json is used on many files
         :return:           Path of the saved .json file
     """
 
@@ -183,13 +183,14 @@ def filter_VP_snapshot(snapshot, relevant_trip_ids):
     return snapshot
 
 
-def preprocess_and_aggregate_VP(target_path, date, relevant_trip_ids):
+def preprocess_and_aggregate_VP(target_path, date, relevant_trip_ids, verbose=False):
     """
         Filters and aggregates VehiclePosition data into a single file
 
         :param target_path:         Path to the /raw folder for VehiclePositions
         :param date:                The date of the dataset to process
         :param relevant_trip_ids:   Set of relevant trip ids
+        :param verbose:             Set to False to skip pb_to_json outputs
     """
 
     raw_RT_dir = target_path
@@ -202,7 +203,7 @@ def preprocess_and_aggregate_VP(target_path, date, relevant_trip_ids):
         for f in folder.iterdir():
             if not f.suffix == '.pb': continue
             path_to_file = folder / f.stem
-            pb_to_json(path_to_file)
+            pb_to_json(path_to_file, verbose=verbose)
         
         hour = folder.name
         hourly_snapshots = []
@@ -239,13 +240,14 @@ def preprocess_and_aggregate_VP(target_path, date, relevant_trip_ids):
         shutil.rmtree(target_path)
         
 
-def preprocess_and_aggregate_TU(target_path, date, relevant_trip_ids):
+def preprocess_and_aggregate_TU(target_path, date, relevant_trip_ids, verbose=False):
     """
         Filters and aggregates TripUpdates data into a single file
 
         :param target_path:         Path to the /raw folder for TripUpdates
         :param date:                The date of the dataset to process
         :param relevant_trip_ids:   Set of relevant trip ids
+        :param verbose:             Set to False to skip pb_to_json outputs
     """
 
     raw_TU_dir = target_path
@@ -258,7 +260,7 @@ def preprocess_and_aggregate_TU(target_path, date, relevant_trip_ids):
         for f in folder.iterdir():
             if not f.suffix == '.pb': continue
             path_to_file = folder / f.stem
-            pb_to_json(path_to_file)
+            pb_to_json(path_to_file, verbose=verbose)
         
         hour = folder.name
         hourly_snapshots = []
