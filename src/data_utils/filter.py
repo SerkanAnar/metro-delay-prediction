@@ -230,6 +230,12 @@ def preprocess_and_aggregate_VP(target_path, date, relevant_trip_ids):
         if folder.exists() and folder.is_dir():
             shutil.rmtree(folder)
             print(f'Deleted raw directory {folder}')
+            
+    print(f'Finished filtering data for {date}')
+    if Path(target_path).name == "raw":
+        print(f'Removing {target_path}')
+        shutil.rmtree(target_path)
+        
 
 def preprocess_and_aggregate_TU(target_path, date, relevant_trip_ids):
     """
@@ -280,6 +286,11 @@ def preprocess_and_aggregate_TU(target_path, date, relevant_trip_ids):
         if folder.exists() and folder.is_dir():
             shutil.rmtree(folder)
             print(f'Deleted raw directory {folder}')
+            
+    print(f'Finished filtering data for {date}')
+    if Path(target_path).name == "raw":
+        print(f'Removing {target_path}')
+        shutil.rmtree(target_path)
 
 
 def filter_static(original_paths):
