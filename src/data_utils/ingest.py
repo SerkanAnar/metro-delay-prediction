@@ -1,3 +1,4 @@
+from datetime import datetime
 from dotenv import load_dotenv
 from google.transit import gtfs_realtime_pb2
 from google.protobuf.json_format import MessageToDict
@@ -44,15 +45,40 @@ def fetch_static(date, target_dir):
 
 def fetch_static_live(target_dir):
     """
-    Fetches static planned public transport data from today using Trafiklab's GTFS Regional Static Data API
+    Fetches static planned public transport data at inference from today using Trafiklab's GTFS Regional Static Data API
     
     :param target_dir: Directory that the API output should be saved at, without file name
+    :return:           Path of the saved .zip folder
     """
     
     load_dotenv()
     api_key = os.getenv("STATIC_API_KEY")
     
     url = f'https://opendata.samtrafiken.se/gtfs/sl/sl.zip?key={api_key}'
+    
+    date = datetime.today().strftime('%Y-%m-%d')
+    
+    for attempt in range(5):
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+        except:
+            print(f'HTTP status {response.status_code}: {response.text}')
+            print(f'Retrying in 5 seconds')
+            time.sleep(5)
+            continue
+        break
+    else:
+        print(f'Skipping static data fetch for {date}')
+        return None
+    
+    file_path = os.path.join(target_dir, f'{date}.zip')
+    
+    with open(file_path, 'wb') as f:
+        f.write(response.content)
+        
+    print(f"Saved GTFS static file to {file_path}")
+    return file_path
 
 
 def extract_zip(target_dir):
