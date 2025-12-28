@@ -203,7 +203,7 @@ def preprocess_and_aggregate_VP(target_path, date, relevant_trip_ids, verbose=Fa
         rel_file_paths = []
         if not folder.is_dir(): continue
         for f in folder.iterdir():
-            if not f.suffix == '.pb': continue
+            if not f.suffix == '.pb': continue # comment this out if directory consists of .json files (for testing)
             time = str(f.stem).split('T')[1]
             minute = int(time.split("-")[1])
             if minute in minutes:
@@ -246,7 +246,7 @@ def preprocess_and_aggregate_VP(target_path, date, relevant_trip_ids, verbose=Fa
 
 def preprocess_and_aggregate_TU(target_path, date, relevant_trip_ids, verbose=False):
     """
-        Filters and aggregates TripUpdates data into a single file
+        Filters and aggregates VehiclePosition data into a single file
 
         :param target_path:         Path to the /raw folder for TripUpdates
         :param date:                The date of the dataset to process
@@ -257,22 +257,26 @@ def preprocess_and_aggregate_TU(target_path, date, relevant_trip_ids, verbose=Fa
     raw_TU_dir = target_path
     output_dir = target_path.parent / 'hourly'
     output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     for folder in raw_TU_dir.iterdir():
         # Convert .pb files to .json
+        minutes = [15, 30, 45]
+        rel_file_paths = []
         if not folder.is_dir(): continue
         for f in folder.iterdir():
-            if not f.suffix == '.pb': continue
-            path_to_file = folder / f.stem
-            pb_to_json(path_to_file, verbose=verbose)
-        
+            if not f.suffix == '.pb': continue # comment this out if directory consists of .json files (for testing)
+            time = str(f.stem).split('T')[1]
+            minute = int(time.split("-")[1])
+            if minute in minutes:
+                target_path = folder / f.stem
+                pb_to_json(target_path, verbose=verbose)
+                rel_file_paths.append(f"{target_path}.json" )
+                minutes.remove(minute)
         hour = folder.name
         hourly_snapshots = []
-        if os.path.exists(output_dir / hour): continue
-        print('Filtering RT json files')
-        json_files = list(folder.glob("*.json"))
-        for json_file in tqdm(json_files, desc=f'Filtering snapshots for hour {hour}'):
-            with open(json_file, 'r', encoding='utf-8') as f:
+        print('Filtering TU json files')
+        for json_file_path in rel_file_paths:
+            with open(json_file_path, 'r', encoding='utf-8') as f:
                 snapshot = json.load(f)
             snapshot = filter_VP_snapshot(snapshot, relevant_trip_ids)
             if snapshot.get('entity'):
@@ -280,7 +284,7 @@ def preprocess_and_aggregate_TU(target_path, date, relevant_trip_ids, verbose=Fa
                     'timestamp': snapshot['header']['timestamp'],
                     'entity': snapshot['entity']
                 })
-        print('Done filtering RT VP json files')
+        print('Done filtering RT TU json files')
         print(f'Writing snapshots to {hour}.json')
         with open(output_dir / f'{hour}.json', 'w', encoding='utf-8') as f:
             json.dump({
@@ -294,7 +298,7 @@ def preprocess_and_aggregate_TU(target_path, date, relevant_trip_ids, verbose=Fa
         if folder.exists() and folder.is_dir():
             shutil.rmtree(folder)
             print(f'Deleted raw directory {folder}')
-            
+    
     print(f'Finished filtering data for {date}')
     if Path(target_path).name == "raw":
         print(f'Removing {target_path}')
