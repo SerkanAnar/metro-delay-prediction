@@ -199,13 +199,13 @@ def preprocess_and_aggregate_VP(target_path, date, relevant_trip_ids, verbose=Fa
 
     for folder in raw_RT_dir.iterdir():
         # Convert .pb files to .json
-        minutes = [00, 15, 30, 45]
+        minutes = ["00", "15", "30", "45"]
         rel_file_paths = []
         if not folder.is_dir(): continue
         for f in folder.iterdir():
             if not f.suffix == '.pb': continue # comment this out if directory consists of .json files (for testing)
             time = str(f.stem).split('T')[1]
-            minute = int(time.split("-")[1])
+            minute = time.split("-")[1]
             if minute in minutes:
                 target_path = folder / f.stem
                 pb_to_json(target_path, verbose=verbose)
@@ -260,13 +260,13 @@ def preprocess_and_aggregate_TU(target_path, date, relevant_trip_ids, verbose=Fa
 
     for folder in raw_TU_dir.iterdir():
         # Convert .pb files to .json
-        minutes = [00, 15, 30, 45]
+        minutes = ["00", "15", "30", "45"]
         rel_file_paths = []
         if not folder.is_dir(): continue
         for f in folder.iterdir():
             if not f.suffix == '.pb': continue # comment this out if directory consists of .json files (for testing)
             time = str(f.stem).split('T')[1]
-            minute = int(time.split("-")[1])
+            minute = time.split("-")[1]
             if minute in minutes:
                 target_path = folder / f.stem
                 pb_to_json(target_path, verbose=verbose)
