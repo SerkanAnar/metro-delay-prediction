@@ -21,20 +21,22 @@ def get_route_name_mapping(target_path):
         mapping[route_id] = route_name
     return mapping
 
-def get_trip_to_line_mapping():
+def get_trip_to_line_mapping(target_path):
     trip_to_line = {}
-    route_id_to_name = get_route_name_mapping('data/static/2025-12-23/routes.csv')
-    trip_to_route_id = get_trip_route_mapping('data/static/2025-12-23/trips.csv')
+    route_id_to_name = get_route_name_mapping(target_path + '/routes.csv')
+    trip_to_route_id = get_trip_route_mapping(target_path + '/trips.csv')
     for key, value in trip_to_route_id.items():
         trip_to_line[key] = route_id_to_name[value]
     return trip_to_line
 
+
 def init_stats():
     return {
-        "speeds": list,
+        "speeds": [],
         "stopped_count": 0,
         "unique_trips": set()
     }
+        
 
 def get_features(target_path, trip_to_line):
     stats = {
@@ -56,7 +58,7 @@ def get_features(target_path, trip_to_line):
             stats[line_name]["speeds"].append(speed)
             stats[line_name]["unique_trips"].add(trip_id)
 
-            if speed <= 0.5:
+            if abs(speed) <= 0.5:
                 stats[line_name]["stopped_count"] += 1
     
     features = []
@@ -66,7 +68,7 @@ def get_features(target_path, trip_to_line):
             "hour": 10,
             "line": line,
             "avg_speed": sum(s["speeds"]) / len(s["speeds"]),
-            "num_active_trips": s["unique_trips"],
+            "num_active_trips": len(s["unique_trips"]),
             "frac_stopped": s["stopped_count"] / len(s["speeds"])
         })
     
@@ -110,10 +112,15 @@ def get_labels(target_path, trip_to_line):
     return avg_delay_by_line
 
 if __name__ == '__main__':
-    trip_to_line = get_trip_to_line_mapping() # This allows us to go from trip id -> route name
-    path_to_file = 'data/realtime/2025-12-12/TripUpdates/hourly/10.json'
-    avg_delay_by_line = get_labels(path_to_file, trip_to_line) # Here are our labels for hour 2025-12-12, hour 10
+    trip_to_line = get_trip_to_line_mapping('data/static/2025-12-12') # This allows us to go from trip id -> route name
+    path_to_TripUpdates = 'data/realtime/2025-12-12/TripUpdates/hourly/10.json'
+    avg_delay_by_line = get_labels(path_to_TripUpdates, trip_to_line) # These are our labels for hour 2025-12-12, hour 10:00-11:00
     path_to_realtime = 'data/realtime/2025-12-12/VehiclePositions/hourly/10.json'
-    features = get_features(path_to_realtime, trip_to_line)
-    print(avg_delay_by_line)
-    print(features)
+    features = get_features(path_to_realtime, trip_to_line) # These are some sample features created from hour 10:00-11:00
+    print("Printing labels")
+    lines = ["Gröna linjen", "Röda linjen", "Blå linjen"]
+    for line in lines:
+        print(f'average delay for hour 10:00-11:00 for line {line}: {avg_delay_by_line[line]}')
+    print()
+    print(f'Printing sample feature rows')
+    print(*features, sep='\n')
