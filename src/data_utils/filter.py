@@ -199,7 +199,7 @@ def preprocess_and_aggregate_VP(target_path, date, relevant_trip_ids, verbose=Fa
 
     for folder in raw_RT_dir.iterdir():
         # Convert .pb files to .json
-        minutes = [15, 30, 45]
+        minutes = [00, 15, 30, 45]
         rel_file_paths = []
         if not folder.is_dir(): continue
         for f in folder.iterdir():
@@ -260,7 +260,7 @@ def preprocess_and_aggregate_TU(target_path, date, relevant_trip_ids, verbose=Fa
 
     for folder in raw_TU_dir.iterdir():
         # Convert .pb files to .json
-        minutes = [15, 30, 45]
+        minutes = [00, 15, 30, 45]
         rel_file_paths = []
         if not folder.is_dir(): continue
         for f in folder.iterdir():
