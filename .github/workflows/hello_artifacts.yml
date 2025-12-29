@@ -10,13 +10,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
       - name: Create hello world file
         run: |
-          echo "Hello world" > hello_world.txt
+          echo "Hello world" > data/static/hello_world.txt
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: hello-Artifacts
-          path: hello_world.txt
-          retention-days: 1
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add data/static/hello_world.txt
+          git diff --cached --quiet || git commit -m "Add automated hello world file"
+          git push
