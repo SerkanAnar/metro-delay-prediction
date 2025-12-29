@@ -1,0 +1,22 @@
+name: Hello Artifacts
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # every 5 minutes
+  workflow_dispatch:
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create hello world file
+        run: |
+          echo "Hello world" > hello.txt
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: hello-Artifacts
+          path: hello_world.txt
+          retention-days: 1
