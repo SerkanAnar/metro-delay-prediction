@@ -175,15 +175,14 @@ def fetch_realtime(date, target_dir, feed="VehiclePositions", hour=None, wait_se
     return file_path
 
 
-def fetch_realtime_live(target_dir, feed="VehiclePositions", wait_seconds=5, max_retries=5):
+def fetch_realtime_live(feed="VehiclePositions", wait_seconds=5, max_retries=5):
     """
     Fetches real time public transport data using Trafiklab's GTFS Regional Realtime Data API
     
-    :param target_dir:   Directory that the API output should be saved at, without file name
     :param feed:         Specifies which feed [ServiceAlerts, TripUpdates, VehiclePositions] to fetch from
     :param wait_seconds: Number of seconds the function waits before retrying API call
     :param max_retries:  Number of maximum retries
-    :return:             Path of the saved .pb file
+    :return:             Either the realtime contents in .pb format or None if fetch failed
     """
     
     load_dotenv()
@@ -204,32 +203,12 @@ def fetch_realtime_live(target_dir, feed="VehiclePositions", wait_seconds=5, max
             continue
         break
     else:
-        print(f'Skipping static data fetch for {date}')
+        print(f'Skipping realtime data fetch for {date}')
         return None
     
-    hour = datetime.now().strftime('%H')
-    minute = datetime.now().strftime('%M')
-    second = datetime.now().strftime('%S')
-    
-    file_path = os.path.join(target_dir,
-                             'realtime',
-                             f'{date}',
-                             f'{feed}',
-                             'raw',
-                             f'{hour}',
-                             f'{date}T{hour}-{minute}-{second}Z.pb')
-    
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    
-    # with open(file_path, 'wb') as f:
-    #     f.write(response.content)
-        
-    # print(f"Saved GTFS static file to {file_path}")
-    # return file_path
     feed = gtfs_realtime_pb2.FeedMessage()
     feed.ParseFromString(response.content)
     return feed
-            
 
 
 def extract_7z(target_dir, feed="VehiclePositions", hour=None):
