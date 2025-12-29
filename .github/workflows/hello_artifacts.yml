@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Create hello world file
         run: |
-          echo "Hello world" > hello.txt
+          echo "Hello world" > hello_world.txt
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
