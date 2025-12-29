@@ -24,6 +24,6 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-          git add data/static/hello_world.txt
+          git add -f data/static/hello_world.txt
           git diff --cached --quiet || git commit -m "Add automated hello world file"
           git push
