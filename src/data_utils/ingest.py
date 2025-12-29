@@ -2,6 +2,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 from google.transit import gtfs_realtime_pb2
 from google.protobuf.json_format import MessageToDict
+from io import BytesIO
 import json
 import requests
 import shutil
@@ -43,12 +44,12 @@ def fetch_static(date, target_dir):
     return file_path
 
 
-def fetch_static_live(target_dir):
+def fetch_static_live(file_names=['routes.txt', 'trips.txt']):
     """
     Fetches static planned public transport data at inference from today using Trafiklab's GTFS Regional Static Data API
     
-    :param target_dir: Directory that the API output should be saved at, without file name
-    :return:           Path of the saved .zip folder
+    :param file_names: List of file names from the fetched .zip file to output
+    :return:           The content of the specified files in the fetched .zip file in dictionary format
     """
     
     load_dotenv()
@@ -71,14 +72,14 @@ def fetch_static_live(target_dir):
     else:
         print(f'Skipping static data fetch for {date}')
         return None
-    
-    file_path = os.path.join(target_dir, f'{date}.zip')
-    
-    with open(file_path, 'wb') as f:
-        f.write(response.content)
         
-    print(f"Saved GTFS static file to {file_path}")
-    return file_path
+    data = {}
+    with zipfile.ZipFile(BytesIO(response.content)) as z:
+        for name in file_names:
+            if name in z.namelist():
+                with z.open(name) as f:
+                    data[name] = f.read()
+    return data
 
 
 def extract_zip(target_dir):
@@ -206,9 +207,9 @@ def fetch_realtime_live(feed="VehiclePositions", wait_seconds=5, max_retries=5):
         print(f'Skipping realtime data fetch for {date}')
         return None
     
-    feed = gtfs_realtime_pb2.FeedMessage()
-    feed.ParseFromString(response.content)
-    return feed
+    data = gtfs_realtime_pb2.FeedMessage()
+    data.ParseFromString(response.content)
+    return data
 
 
 def extract_7z(target_dir, feed="VehiclePositions", hour=None):
@@ -277,4 +278,6 @@ if __name__ == '__main__':
     # extracted = extract_7z(realtime_file, feed='TripUpdates', hour=10)
     # flatten_extracted_structure(extracted)
     # pb_to_json("data/2025-12-12")
-    fetch_realtime_live("data")
+    output = fetch_static_live()
+    print(output['routes.txt'])
+    # fetch_realtime_live("data")
