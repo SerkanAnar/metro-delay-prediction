@@ -123,7 +123,7 @@ def txt_to_csv(target_dir):
     return directory
 
 
-def fetch_realtime(date, target_dir, feed="VehiclePositions", hour=None, wait_seconds=60, max_retries=65):
+def fetch_realtime(date, target_dir, feed="VehiclePositions", hour=None, wait_seconds=60, max_retries=300):
     """
         Fetches real time public transport data using Trafiklab's KoDa API
         
@@ -221,11 +221,14 @@ def fetch_realtime_live(target_dir, feed="VehiclePositions", wait_seconds=5, max
     
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     
-    with open(file_path, 'wb') as f:
-        f.write(response.content)
+    # with open(file_path, 'wb') as f:
+    #     f.write(response.content)
         
-    print(f"Saved GTFS static file to {file_path}")
-    return file_path
+    # print(f"Saved GTFS static file to {file_path}")
+    # return file_path
+    feed = gtfs_realtime_pb2.FeedMessage()
+    feed.ParseFromString(response.content)
+    return feed
             
 
 
