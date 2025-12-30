@@ -36,7 +36,7 @@ def get_delay_lags(fs, line, timestamp):
     except Exception:
         df = pd.DataFrame(columns=["timestamp", "line", "delay_60", "delay_45", "delay_30", "delay_15", "delay_current"])
     df = df[
-        (df["line"] == line) & (df["timestamp"] < pd.Timestamp(timestamp))
+        (df["line"] == line) & (df["timestamp"] < timestamp)
     ].sort_values("timestamp", ascending=False)
     
     return {
@@ -91,7 +91,7 @@ def extract_current_delay_per_line(content_TU, trip_to_line):
 
 
 def compute_and_upload_features(avg_delay, fs):
-    now = datetime.now(ZoneInfo("Europe/Stockholm")).replace(second=0, microsecond=0)
+    now = pd.Timestamp(datetime.now(ZoneInfo("Europe/Stockholm")).replace(second=0, microsecond=0))
     feature_rows = []
 
     for line, delay_now in avg_delay.items():
@@ -121,7 +121,7 @@ def compute_and_upload_features(avg_delay, fs):
 
 
 def compute_and_upload_labels(avg_delay, fs):
-    now = datetime.now(ZoneInfo("Europe/Stockholm")).replace(second=0, microsecond=0)
+    now = pd.Timestamp(datetime.now(ZoneInfo("Europe/Stockholm")).replace(second=0, microsecond=0))
     label_rows = [{"timestamp": now, "line": line, "avg_delay": delay} for line, delay in avg_delay.items()]
     df_labels = pd.DataFrame(label_rows)
 
