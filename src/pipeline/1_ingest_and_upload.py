@@ -4,7 +4,6 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 from collections import defaultdict
 import hopsworks
-from dotenv import load_dotenv
 import os
 import io
 
