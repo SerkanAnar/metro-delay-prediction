@@ -1,9 +1,7 @@
 from datetime import datetime
 from dotenv import load_dotenv
 from google.transit import gtfs_realtime_pb2
-from google.protobuf.json_format import MessageToDict
 from io import BytesIO
-import json
 import requests
 import shutil
 import os

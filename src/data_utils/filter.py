@@ -2,7 +2,6 @@ import pandas as pd
 import os
 import json
 from pathlib import Path
-from tqdm import tqdm
 from google.transit import gtfs_realtime_pb2
 from google.protobuf.json_format import MessageToDict
 import shutil
