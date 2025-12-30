@@ -1,8 +1,8 @@
 name: Fetch SL Metro Data Quarterly
 
 on:
-  #schedule:
-    #- cron: "0,15,30,45 * * * *"   # every 5 minutes
+  schedule:
+    - cron: "0,15,30,45 * * * *"   # every 5 minutes
   workflow_dispatch:
 
 jobs:
@@ -27,5 +27,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run pipeline
+        env:
+          HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
         run: |
-          python scr/pipeline/...
+          python scr/pipeline/1_ingest_and_upload.py
