@@ -6,7 +6,6 @@ from collections import defaultdict
 import hopsworks
 import os
 import io
-from dotenv import load_dotenv
 import numpy as np
 
 
@@ -138,7 +137,6 @@ def compute_and_upload_labels(avg_delay, fs):
 
 
 def load_hopsworks():
-    load_dotenv()
     hopsworks_key = os.getenv('HOPSWORKS_API_KEY')
     if hopsworks_key:
         os.environ['HOPSWORKS_API_KEY'] = hopsworks_key
