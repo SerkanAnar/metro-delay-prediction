@@ -1,14 +1,11 @@
-from src.data_utils.ingest import fetch_realtime_live, fetch_static_live
-import pandas as pd
-from datetime import datetime, timezone
+from src.data_utils.ingest import fetch_realtime_live
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+import pandas as pd
 from collections import defaultdict
-from google.transit import gtfs_realtime_pb2
-from google.protobuf.json_format import MessageToDict
 import hopsworks
 from dotenv import load_dotenv
 import os
-import io
 
 
 ### This script is run every 15 minutes as a github action
@@ -20,15 +17,22 @@ import io
 def fetch_realtime():
     content_VP = fetch_realtime_live(feed="VehiclePositions")
     content_TU = fetch_realtime_live(feed="TripUpdates")
+
     return content_VP, content_TU
 
 
 def get_delay_lags(fs, line, timestamp):
-    fg = fs.get_feature_group(
-        name="delay features",
-        version=1
+    fg = fs.get_or_create_feature_group(
+        name="delay_features_fg",
+        description="lagged time features",
+        version=1,
+        primary_key=["timestamp", "line"],
+        online_enabled=True
     )
-    df = fg.read()
+    try: 
+        df = fg.read()
+    except Exception:
+        df = pd.DataFrame(columns=["timestamp", "line", "delay_60", "delay_45", "delay_30", "delay_15", "delay_current"])
     df = df[
         (df["line"] == line) & (df["timestamp"] < timestamp)
     ].sort_values("timestamp", ascending=False)
@@ -84,7 +88,7 @@ def extract_current_delay_per_line(content_TU, trip_to_line):
     return avg_delay_by_line
 
 
-def compute_and_upload_features(content_TU, avg_delay, trip_to_line, fs):
+def compute_and_upload_features(avg_delay, fs):
     now = datetime.now(ZoneInfo("Europe/Stockholm")).replace(second=0, microsecond=0)
     feature_rows = []
 
@@ -101,28 +105,32 @@ def compute_and_upload_features(content_TU, avg_delay, trip_to_line, fs):
             "delay_current": delay_now
         })
     
+    df_features = pd.DataFrame(feature_rows)
     fg = fs.get_or_create_feature_group(
-        name="delay features",
+        name="delay_features_fg",
         description="lagged time features",
         version=1,
-        primary_key=["timestamp", "line"]
+        primary_key=["timestamp", "line"],
+        online_enabled=True
     )
-    fg.insert(feature_rows)
-    return feature_rows
+    fg.insert(df_features, write_options={"wait_for_job": True})
+    # return feature_rows
 
 
-def compute_and_upload_labels(content_TU, avg_delay, trip_to_line, fs):
+def compute_and_upload_labels(avg_delay, fs):
     now = datetime.now(ZoneInfo("Europe/Stockholm")).replace(second=0, microsecond=0)
     label_rows = [{"timestamp": now, "line": line, "avg_delay": delay} for line, delay in avg_delay.items()]
+    df_labels = pd.DataFrame(label_rows)
 
-    # fg = fs.get_or_create_feature_group(
-    #     name="delay labels",
-    #     description="labels for each line",
-    #     version=1, 
-    #     primary_key=["timestamp", "line"]
-    # )
-    # fg.insert(label_rows)
-    return label_rows
+    fg = fs.get_or_create_feature_group(
+        name="delay_labels_fg",
+        description="labels for each line",
+        version=1, 
+        primary_key=["timestamp", "line"],
+        online_enabled=True
+    )
+    fg.insert(df_labels, write_options={"wait_for_job": True})
+    # return label_rows
 
 
 def load_hopsworks():
@@ -143,57 +151,51 @@ def load_hopsworks():
     return project, fs
 
 
-def get_route_name_mapping(routes):
-    relevant = ["Röda linjen", "Blå linjen", "Gröna linjen"]
-    df = pd.read_csv(io.StringIO(routes), dtype={'route_id':str})
-    filtered_df = df[df['route_long_name'].isin(relevant)]
-    return dict(zip(filtered_df['route_id'], filtered_df['route_long_name']))
+def get_trip_to_line(fs):
+    today = datetime.now(ZoneInfo("Europe/Stockholm")).date().isoformat()
+    fg = fs.get_feature_group(
+        name="trip_line_mapping_fg",
+        version=1
+    )
+    try: 
+        df = fg.read()
+    except Exception:
+        df = None
 
+    if df is None: # no static data
+        return None
 
-def get_trip_route_mapping(trips, route_ids):
-    mapping = {}
-    df = pd.read_csv(io.StringIO(trips), dtype={'trip_id':str, 'route_id':str})
-    for _, row in df.iterrows():
-        trip_id = row['trip_id']
-        route_id = row['route_id']
-        if route_id in route_ids and trip_id not in mapping:
-            mapping[trip_id] = route_id
-    return mapping
+    latest_date = df["service_date"].max()
 
+    if latest_date != today:
+        return None # no static data uploaded for today yet
 
-def get_trip_to_line():
-    trip_to_line = {}
-    data = fetch_static_live()
-    routes = data["routes.txt"]
-    trips = data["trips.txt"]
-    routes_csv = routes.decode('utf-8')
-    trips_csv = trips.decode('utf-8')
-    
-    route_id_to_name = get_route_name_mapping(routes_csv)
-    route_ids = route_id_to_name.keys()
-    trip_to_route = get_trip_route_mapping(trips_csv, route_ids)
-    for key, value in trip_to_route.items():
-        trip_to_line[key] = route_id_to_name[value]
-    return trip_to_line
+    df = df[df["service_date"] == latest_date]
+
+    return dict(zip(df.trip_id, df.line))
 
 
 if __name__ == '__main__':
-    # project, fs = load_hopsworks()
-    trip_to_line = get_trip_to_line()
+    project, fs = load_hopsworks()
+    trip_to_line = get_trip_to_line(fs)
+
+    if trip_to_line is None:
+        print(f"No static data uploaded for today yet, skipping ingestion.")
+        exit(0)
 
     content_VP, content_TU = fetch_realtime()
     avg_delay_by_line = extract_current_delay_per_line(content_TU, trip_to_line)
-    # compute_and_upload_features(content_TU, avg_delay_by_line, trip_to_line, None)
-    label_rows = compute_and_upload_labels(content_TU, avg_delay_by_line, trip_to_line, None)
+    compute_and_upload_features(avg_delay_by_line, fs)
+    label_rows = compute_and_upload_labels(avg_delay_by_line, fs)
 
-    print("Outputting results...")
-    print("trip_to_line!")
-    print(f"{trip_to_line.items()}\n")
+    # print("Outputting results...")
+    # print("trip_to_line!")
+    # print(f"{trip_to_line.items()}\n")
 
-    print(f"printing avg_delay_by_line...")
-    print(f"{avg_delay_by_line.items()}")
+    # print(f"printing avg_delay_by_line...")
+    # print(f"{avg_delay_by_line.items()}")
 
-    print(f"printing label rows...")
-    for i, d in enumerate(label_rows):
-        print(f'printing element {i+1} in label rows')
-        print(f'{d.items()}\n')
+    # print(f"printing label rows...")
+    # for i, d in enumerate(label_rows):
+    #     print(f'printing element {i+1} in label rows')
+    #     print(f'{d.items()}\n')
