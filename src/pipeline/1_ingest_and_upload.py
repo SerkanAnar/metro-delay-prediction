@@ -258,7 +258,6 @@ def upload_trip_to_line_mapping(fs, trip_to_line):
 if __name__ == '__main__':
     print("logging into hopsworks")
     project, fs = load_hopsworks()
-    print("logged into hopsworks")
 
     # static handler here
     static_fetched = False
