@@ -1,4 +1,4 @@
-"hopsworks[python]"
+hopsworks[python]
 requests
 protobuf
 gtfs-realtime-bindings
