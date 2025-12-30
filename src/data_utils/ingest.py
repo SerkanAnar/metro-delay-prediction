@@ -52,7 +52,7 @@ def fetch_static_live(file_names=['routes.txt', 'trips.txt']):
     :return:           The content of the specified files in the fetched .zip file in dictionary format
     """
     
-    load_dotenv()
+    # load_dotenv()
     api_key = os.getenv("STATIC_API_KEY")
     
     url = f'https://opendata.samtrafiken.se/gtfs/sl/sl.zip?key={api_key}'
@@ -186,7 +186,7 @@ def fetch_realtime_live(feed="VehiclePositions", wait_seconds=5, max_retries=5):
     :return:             Either the realtime contents in .pb format or None if fetch failed
     """
     
-    load_dotenv()
+    # load_dotenv()
     api_key = os.getenv("REALTIME_API_KEY")
     
     url = f'https://opendata.samtrafiken.se/gtfs-rt/sl/{feed}.pb?key={api_key}'
