@@ -1,0 +1,7 @@
+hopsworks[python]
+requests
+protobuf
+gtfs-realtime-bindings
+pandas
+python-dateutil
+pytz
