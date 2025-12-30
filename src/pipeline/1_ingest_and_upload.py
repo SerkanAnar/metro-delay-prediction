@@ -281,7 +281,7 @@ if __name__ == '__main__':
     content_VP, content_TU = fetch_realtime()
     avg_delay_by_line = extract_current_delay_per_line(content_TU, trip_to_line)
     compute_and_upload_features(avg_delay_by_line, fs)
-    label_rows = compute_and_upload_labels(avg_delay_by_line, fs)
+    compute_and_upload_labels(avg_delay_by_line, fs)
 
     # print("Outputting results...")
     # print("trip_to_line!")
