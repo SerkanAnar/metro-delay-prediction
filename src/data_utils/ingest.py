@@ -1,12 +1,8 @@
 from datetime import datetime
-from dotenv import load_dotenv
 from google.transit import gtfs_realtime_pb2
 from io import BytesIO
 import requests
-import shutil
 import os
-from pathlib import Path
-import py7zr
 import time
 import zipfile
 
