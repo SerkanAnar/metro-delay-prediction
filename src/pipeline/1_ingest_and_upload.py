@@ -123,7 +123,7 @@ def compute_and_upload_labels(avg_delay, fs, now, now_str):
         name="delay_labels_fg",
         description="labels for each line",
         version=1, 
-        primary_key=["line", "timestamp"],
+        primary_key=["line", "timestamp_str"],
         event_time="timestamp",
         online_enabled=True
     )
