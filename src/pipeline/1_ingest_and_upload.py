@@ -34,16 +34,14 @@ def get_delay_lags(fs, line, timestamp):
     try: 
         df = fg.read(online=True)
     except Exception:
-        df = pd.DataFrame(columns=["timestamp", "line", "delay_60", "delay_45", "delay_30", "delay_15", "delay_current"])
+        df = pd.DataFrame(columns=["timestamp", "line", "delay_60", "delay_30", "delay_current"])
     df = df[
         (df["line"] == line) & (df["timestamp"] < timestamp)
     ].sort_values("timestamp", ascending=False)
     
     return {
-        "delay_15": df.iloc[0]["delay_current"] if len(df) > 0 else np.nan,
-        "delay_30": df.iloc[1]["delay_current"] if len(df) > 1 else np.nan,
-        "delay_45": df.iloc[2]["delay_current"] if len(df) > 2 else np.nan,
-        "delay_60": df.iloc[3]["delay_current"] if len(df) > 3 else np.nan
+        "delay_30": df.iloc[0]["delay_current"] if len(df) > 0 else np.nan,
+        "delay_60": df.iloc[1]["delay_current"] if len(df) > 1 else np.nan,
     }
 
 
@@ -91,7 +89,7 @@ def extract_current_delay_per_line(content_TU, trip_to_line):
 
 
 def compute_and_upload_features(avg_delay, fs):
-    now = pd.Timestamp(datetime.now(ZoneInfo("Europe/Stockholm")).replace(second=0, microsecond=0))
+    now = pd.Timestamp(datetime.now(ZoneInfo("Europe/Stockholm"))).tz_localize(None).floor("min")
     feature_rows = []
 
     for line, delay_now in avg_delay.items():
@@ -101,9 +99,7 @@ def compute_and_upload_features(avg_delay, fs):
             "timestamp": now,
             "line": line,
             "delay_60": lags["delay_60"],
-            "delay_45": lags["delay_45"],
             "delay_30": lags["delay_30"],
-            "delay_15": lags["delay_15"],
             "delay_current": delay_now
         })
     
@@ -121,7 +117,7 @@ def compute_and_upload_features(avg_delay, fs):
 
 
 def compute_and_upload_labels(avg_delay, fs):
-    now = pd.Timestamp(datetime.now(ZoneInfo("Europe/Stockholm")).replace(second=0, microsecond=0))
+    now = pd.Timestamp(datetime.now(ZoneInfo("Europe/Stockholm"))).tz_localize(None).floor("min")
     label_rows = [{"timestamp": now, "line": line, "avg_delay": delay} for line, delay in avg_delay.items()]
     df_labels = pd.DataFrame(label_rows)
 
