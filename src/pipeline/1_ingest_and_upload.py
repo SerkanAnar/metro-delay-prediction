@@ -135,9 +135,9 @@ def compute_and_upload_labels(avg_delay, fs):
 
 
 def load_hopsworks():
-    load_dotenv()
+    # load_dotenv()
     hopsworks_key = os.getenv('HOPSWORKS_API_KEY')
-    if hopsworks_key is not None:
+    if hopsworks_key:
         os.environ['HOPSWORKS_API_KEY'] = hopsworks_key
 
     # If you are invited to someone else's Hopsworks project, write that project's name below
