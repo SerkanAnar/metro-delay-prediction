@@ -27,7 +27,8 @@ def get_delay_lags(fs, line, timestamp):
         name="delay_features_fg",
         description="lagged time features",
         version=1,
-        primary_key=["timestamp", "line"],
+        primary_key=["line"],
+        event_time="timestamp",
         online_enabled=True
     )
     try: 
@@ -35,7 +36,7 @@ def get_delay_lags(fs, line, timestamp):
     except Exception:
         df = pd.DataFrame(columns=["timestamp", "line", "delay_60", "delay_45", "delay_30", "delay_15", "delay_current"])
     df = df[
-        (df["line"] == line) & (df["timestamp"] < timestamp)
+        (df["line"] == line) & (df["timestamp"] < pd.to_datetime(timestamp))
     ].sort_values("timestamp", ascending=False)
     
     return {
