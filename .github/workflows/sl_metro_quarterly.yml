@@ -32,4 +32,4 @@ jobs:
           STATIC_API_KEY: ${{ secrets.STATIC_API_KEY }}
           REALTIME_API_KEY: ${{ secrets.REALTIME_API_KEY }}
         run: |
-          python scr/pipeline/1_ingest_and_upload.py
+          python src/pipeline/1_ingest_and_upload.py
