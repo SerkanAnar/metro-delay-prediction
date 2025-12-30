@@ -1,4 +1,4 @@
-name: fetch_sl_metro_data_quarterly
+name: Fetch SL Metro Data Quarterly
 
 on:
   #schedule:
