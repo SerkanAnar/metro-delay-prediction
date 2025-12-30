@@ -1,9 +1,10 @@
+from zoneinfo import ZoneInfo
 import hopsworks
 import pandas as pd
 from src.data_utils.ingest import fetch_static_live
 from dotenv import load_dotenv
 import os
-from datetime import date
+from datetime import date, datetime
 import io
 
 
@@ -81,7 +82,35 @@ def upload_trip_to_line_mapping(fs, trip_to_line):
     fg.delete(f"service_date < '{date.today()}'")
 
 
+def check_latest(fs):
+    # return true if we should get new data
+    today = datetime.now(ZoneInfo("Europe/Stockholm")).date().isoformat()
+    fg = fs.get_feature_group(
+        name="trip_line_mapping_fg",
+        version=1
+    )
+    try: 
+        df = fg.read()
+    except Exception:
+        df = None # data does not exist, we should return True so we create data
+    
+    if df is None or df.empty:
+        return True
+    
+    latest_date = df["service_date"].max()
+
+    if latest_date < today:
+        return True # no static data uploaded for today yet
+    else:
+        return False
+
+
 if __name__ == '__main__':
     project, fs = load_hopsworks()
-    trip_to_line = get_trip_to_line()
-    upload_trip_to_line_mapping(fs, trip_to_line)
+    # check latest date of data in hopsworks
+    if check_latest(fs):
+        print("Static data not yet uploaded for today. Fetching new data...")
+        trip_to_line = get_trip_to_line()
+        upload_trip_to_line_mapping(fs, trip_to_line)
+    else:
+        print("Static data for today already exists. Skipping static fetch.")
