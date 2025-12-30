@@ -8,7 +8,6 @@ import os
 import io
 import numpy as np
 
-
 ### This script is run every 30 minutes as a github action
 ### 1. Fetches realtime VehiclePositions and TripUpdates data
 ### 2. Creates features and uploads them to hopsworks feature group
@@ -27,7 +26,7 @@ def get_delay_lags(fs, line, timestamp):
         name="delay_features_fg",
         description="lagged time features",
         version=1,
-        primary_key=["line"],
+        primary_key=["line", "timestamp"],
         event_time="timestamp",
         online_enabled=True
     )
@@ -88,7 +87,7 @@ def extract_current_delay_per_line(content_TU, trip_to_line):
     return avg_delay_by_line
 
 
-def compute_and_upload_features(avg_delay, fs, now):
+def compute_and_upload_features(avg_delay, fs, now, now_str):
     feature_rows = []
 
     for line, delay_now in avg_delay.items():
@@ -96,6 +95,7 @@ def compute_and_upload_features(avg_delay, fs, now):
 
         feature_rows.append({
             "timestamp": now,
+            "timestamp_str": now_str,
             "line": line,
             "delay_60": lags["delay_60"],
             "delay_30": lags["delay_30"],
@@ -107,7 +107,7 @@ def compute_and_upload_features(avg_delay, fs, now):
         name="delay_features_fg",
         description="lagged time features",
         version=1,
-        primary_key=["line"],
+        primary_key=["line", "timestamp_str"],
         event_time="timestamp",
         online_enabled=True
     )
@@ -115,15 +115,15 @@ def compute_and_upload_features(avg_delay, fs, now):
     # return feature_rows
 
 
-def compute_and_upload_labels(avg_delay, fs, now):
-    label_rows = [{"timestamp": now, "line": line, "avg_delay": delay} for line, delay in avg_delay.items()]
+def compute_and_upload_labels(avg_delay, fs, now, now_str):
+    label_rows = [{"timestamp": now, "timestamp_str": now_str, "line": line, "avg_delay": delay} for line, delay in avg_delay.items()]
     df_labels = pd.DataFrame(label_rows)
 
     fg = fs.get_or_create_feature_group(
         name="delay_labels_fg",
         description="labels for each line",
         version=1, 
-        primary_key=["line"],
+        primary_key=["line", "timestamp"],
         event_time="timestamp",
         online_enabled=True
     )
@@ -276,9 +276,10 @@ if __name__ == '__main__':
 
     content_VP, content_TU = fetch_realtime()
     now = pd.Timestamp(datetime.now(ZoneInfo("Europe/Stockholm"))).tz_localize(None).floor("min")
+    now_str = now.isoformat()
     avg_delay_by_line = extract_current_delay_per_line(content_TU, trip_to_line)
-    compute_and_upload_features(avg_delay_by_line, fs, now)
-    compute_and_upload_labels(avg_delay_by_line, fs, now)
+    compute_and_upload_features(avg_delay_by_line, fs, now, now_str)
+    compute_and_upload_labels(avg_delay_by_line, fs, now, now_str)
 
     # print("Outputting results...")
     # print("trip_to_line!")
