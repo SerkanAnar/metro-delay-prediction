@@ -1,11 +1,12 @@
-from src.data_utils.ingest import fetch_realtime_live
-from datetime import datetime, timedelta
+from src.data_utils.ingest import fetch_realtime_live, fetch_static_live
+from datetime import datetime, date
 from zoneinfo import ZoneInfo
 import pandas as pd
 from collections import defaultdict
 import hopsworks
 from dotenv import load_dotenv
 import os
+import io
 
 
 ### This script is run every 15 minutes as a github action
@@ -151,7 +152,7 @@ def load_hopsworks():
     return project, fs
 
 
-def get_trip_to_line(fs):
+def get_trip_to_line_realtime(fs):
     today = datetime.now(ZoneInfo("Europe/Stockholm")).date().isoformat()
     fg = fs.get_feature_group(
         name="trip_line_mapping_fg",
@@ -175,9 +176,103 @@ def get_trip_to_line(fs):
     return dict(zip(df.trip_id, df.line))
 
 
+def check_latest(fs):
+    # return true if we should get new data
+    today = datetime.now(ZoneInfo("Europe/Stockholm")).date().isoformat()
+    fg = fs.get_feature_group(
+        name="trip_line_mapping_fg",
+        version=1
+    )
+    try: 
+        df = fg.read()
+    except Exception:
+        df = None # data does not exist, we should return True so we create data
+    
+    if df is None or df.empty:
+        return True
+    
+    latest_date = df["service_date"].max()
+
+    if latest_date < today:
+        return True # no static data uploaded for today yet
+    else:
+        return False
+
+
+def get_route_name_mapping(routes):
+    relevant = ["Röda linjen", "Blå linjen", "Gröna linjen"]
+    df = pd.read_csv(io.StringIO(routes), dtype={'route_id':str})
+    filtered_df = df[df['route_long_name'].isin(relevant)]
+    return dict(zip(filtered_df['route_id'], filtered_df['route_long_name']))
+
+
+def get_trip_route_mapping(trips, route_ids):
+    mapping = {}
+    df = pd.read_csv(io.StringIO(trips), dtype={'trip_id':str, 'route_id':str})
+    for _, row in df.iterrows():
+        trip_id = row['trip_id']
+        route_id = row['route_id']
+        if route_id in route_ids and trip_id not in mapping:
+            mapping[trip_id] = route_id
+    return mapping
+
+
+def get_trip_to_line_static():
+    trip_to_line = {}
+    data = fetch_static_live()
+    routes = data["routes.txt"]
+    trips = data["trips.txt"]
+    routes_csv = routes.decode('utf-8')
+    trips_csv = trips.decode('utf-8')
+    
+    route_id_to_name = get_route_name_mapping(routes_csv)
+    route_ids = route_id_to_name.keys()
+    trip_to_route = get_trip_route_mapping(trips_csv, route_ids)
+    for key, value in trip_to_route.items():
+        trip_to_line[key] = route_id_to_name[value]
+    return trip_to_line
+
+
+def upload_trip_to_line_mapping(fs, trip_to_line):
+    today = date.today().isoformat()
+    rows = [
+        {
+            "trip_id": trip_id,
+            "line": line,
+            "service_date": today
+        }
+        for trip_id, line in trip_to_line.items()
+    ]
+    df = pd.DataFrame(rows)
+    fg = fs.get_or_create_feature_group(
+        name="trip_line_mapping_fg",
+        version=1,
+        primary_key=["trip_id"],
+        description="Static mapping from GTFS trip_id to metro line",
+        online_enabled=True
+    )
+    fg.insert(df, write_options={"wait_for_job": True})
+    fg.delete(f"service_date < '{date.today()}'")
+
+
 if __name__ == '__main__':
     project, fs = load_hopsworks()
-    trip_to_line = get_trip_to_line(fs)
+
+    # static handler here
+    static_fetched = False
+    if check_latest(fs):
+        print("Static data not yet uploaded for today. Fetching new data...")
+        trip_to_line = get_trip_to_line_static()
+        upload_trip_to_line_mapping(fs, trip_to_line)
+        static_fetched = True
+    
+    # realtime handler here
+    if static_fetched:
+        print("Static data for today has been fetched and uploaded to hopsworks")
+    else:
+        print("Static data for today already exists. Skipped fetch.")
+    
+    trip_to_line = get_trip_to_line_realtime(fs)
 
     if trip_to_line is None:
         print(f"No static data uploaded for today yet, skipping ingestion.")
