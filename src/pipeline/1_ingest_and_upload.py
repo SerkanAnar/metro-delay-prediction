@@ -9,7 +9,7 @@ import io
 import numpy as np
 
 
-### This script is run every 15 minutes as a github action
+### This script is run every 30 minutes as a github action
 ### 1. Fetches realtime VehiclePositions and TripUpdates data
 ### 2. Creates features and uploads them to hopsworks feature group
 ### 3. Creates labels and uploads them to hopsworks feature group
