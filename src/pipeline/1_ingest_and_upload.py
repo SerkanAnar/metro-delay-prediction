@@ -88,8 +88,7 @@ def extract_current_delay_per_line(content_TU, trip_to_line):
     return avg_delay_by_line
 
 
-def compute_and_upload_features(avg_delay, fs):
-    now = pd.Timestamp(datetime.now(ZoneInfo("Europe/Stockholm"))).tz_localize(None).floor("min")
+def compute_and_upload_features(avg_delay, fs, now):
     feature_rows = []
 
     for line, delay_now in avg_delay.items():
@@ -116,8 +115,7 @@ def compute_and_upload_features(avg_delay, fs):
     # return feature_rows
 
 
-def compute_and_upload_labels(avg_delay, fs):
-    now = pd.Timestamp(datetime.now(ZoneInfo("Europe/Stockholm"))).tz_localize(None).floor("min")
+def compute_and_upload_labels(avg_delay, fs, now):
     label_rows = [{"timestamp": now, "line": line, "avg_delay": delay} for line, delay in avg_delay.items()]
     df_labels = pd.DataFrame(label_rows)
 
@@ -277,9 +275,10 @@ if __name__ == '__main__':
         exit(0)
 
     content_VP, content_TU = fetch_realtime()
+    now = pd.Timestamp(datetime.now(ZoneInfo("Europe/Stockholm"))).tz_localize(None).floor("min")
     avg_delay_by_line = extract_current_delay_per_line(content_TU, trip_to_line)
-    compute_and_upload_features(avg_delay_by_line, fs)
-    compute_and_upload_labels(avg_delay_by_line, fs)
+    compute_and_upload_features(avg_delay_by_line, fs, now)
+    compute_and_upload_labels(avg_delay_by_line, fs, now)
 
     # print("Outputting results...")
     # print("trip_to_line!")
