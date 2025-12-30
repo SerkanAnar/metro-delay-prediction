@@ -36,8 +36,8 @@ def get_delay_lags(fs, line, timestamp):
     except Exception:
         df = pd.DataFrame(columns=["timestamp", "line", "delay_60", "delay_45", "delay_30", "delay_15", "delay_current"])
     df = df[
-        (df["line"] == line) & (df["event_time"] < pd.Timestamp(timestamp))
-    ].sort_values("event_time", ascending=False)
+        (df["line"] == line) & (df["timestamp"] < pd.Timestamp(timestamp))
+    ].sort_values("timestamp", ascending=False)
     
     return {
         "delay_15": df.iloc[0]["delay_current"] if len(df) > 0 else np.nan,
