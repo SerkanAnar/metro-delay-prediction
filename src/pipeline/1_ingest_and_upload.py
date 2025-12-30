@@ -134,7 +134,6 @@ def compute_and_upload_labels(avg_delay, fs):
 
 
 def load_hopsworks():
-    # load_dotenv()
     hopsworks_key = os.getenv('HOPSWORKS_API_KEY')
     if hopsworks_key:
         os.environ['HOPSWORKS_API_KEY'] = hopsworks_key
@@ -250,7 +249,8 @@ def upload_trip_to_line_mapping(fs, trip_to_line):
         description="Static mapping from GTFS trip_id to metro line",
         online_enabled=True
     )
-    fg.insert(df, write_options={"wait_for_job": True}, overwrite=True)
+    fg.delete(f"service_date < '{today}'")
+    fg.insert(df, write_options={"wait_for_job": True})
 
 
 if __name__ == '__main__':
@@ -265,21 +265,21 @@ if __name__ == '__main__':
         static_fetched = True
     
     # realtime handler here
-    if static_fetched:
-        print("Static data for today has been fetched and uploaded to hopsworks")
-    else:
-        print("Static data for today already exists. Skipped fetch.")
+    # if static_fetched:
+    #     print("Static data for today has been fetched and uploaded to hopsworks")
+    # else:
+    #     print("Static data for today already exists. Skipped fetch.")
     
-    trip_to_line = get_trip_to_line_realtime(fs)
+    # trip_to_line = get_trip_to_line_realtime(fs)
 
-    if trip_to_line is None:
-        print(f"No static data uploaded for today yet, skipping ingestion.")
-        exit(0)
+    # if trip_to_line is None:
+    #     print(f"No static data uploaded for today yet, skipping ingestion.")
+    #     exit(0)
 
-    content_VP, content_TU = fetch_realtime()
-    avg_delay_by_line = extract_current_delay_per_line(content_TU, trip_to_line)
-    compute_and_upload_features(avg_delay_by_line, fs)
-    compute_and_upload_labels(avg_delay_by_line, fs)
+    # content_VP, content_TU = fetch_realtime()
+    # avg_delay_by_line = extract_current_delay_per_line(content_TU, trip_to_line)
+    # compute_and_upload_features(avg_delay_by_line, fs)
+    # compute_and_upload_labels(avg_delay_by_line, fs)
 
     # print("Outputting results...")
     # print("trip_to_line!")
