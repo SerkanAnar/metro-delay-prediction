@@ -251,8 +251,7 @@ def upload_trip_to_line_mapping(fs, trip_to_line):
         description="Static mapping from GTFS trip_id to metro line",
         online_enabled=True
     )
-    fg.insert(df, write_options={"wait_for_job": True})
-    fg.delete(f"service_date < '{date.today()}'")
+    fg.insert(df, write_options={"wait_for_job": True}, overwrite=True)
 
 
 if __name__ == '__main__':
