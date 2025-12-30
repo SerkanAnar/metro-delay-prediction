@@ -3,7 +3,7 @@ import pandas as pd
 from src.data_utils.ingest import fetch_static_live
 from dotenv import load_dotenv
 import os
-from datetime import date, timedelta
+from datetime import date
 import io
 
 
