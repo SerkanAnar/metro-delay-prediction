@@ -6,6 +6,8 @@ from collections import defaultdict
 import hopsworks
 import os
 import io
+from dotenv import load_dotenv
+import numpy as np
 
 
 ### This script is run every 15 minutes as a github action
@@ -30,7 +32,7 @@ def get_delay_lags(fs, line, timestamp):
         online_enabled=True
     )
     try: 
-        df = fg.read()
+        df = fg.read(online=True)
     except Exception:
         df = pd.DataFrame(columns=["timestamp", "line", "delay_60", "delay_45", "delay_30", "delay_15", "delay_current"])
     df = df[
@@ -38,10 +40,10 @@ def get_delay_lags(fs, line, timestamp):
     ].sort_values("timestamp", ascending=False)
     
     return {
-        "delay_15": df.iloc[0]["delay_current"] if len(df) > 0 else None,
-        "delay_30": df.iloc[1]["delay_current"] if len(df) > 1 else None,
-        "delay_45": df.iloc[2]["delay_current"] if len(df) > 2 else None,
-        "delay_60": df.iloc[3]["delay_current"] if len(df) > 3 else None
+        "delay_15": df.iloc[0]["delay_current"] if len(df) > 0 else np.nan,
+        "delay_30": df.iloc[1]["delay_current"] if len(df) > 1 else np.nan,
+        "delay_45": df.iloc[2]["delay_current"] if len(df) > 2 else np.nan,
+        "delay_60": df.iloc[3]["delay_current"] if len(df) > 3 else np.nan
     }
 
 
@@ -110,7 +112,8 @@ def compute_and_upload_features(avg_delay, fs):
         name="delay_features_fg",
         description="lagged time features",
         version=1,
-        primary_key=["timestamp", "line"],
+        primary_key=["line"],
+        event_time="timestamp",
         online_enabled=True
     )
     fg.insert(df_features, write_options={"wait_for_job": True})
@@ -126,7 +129,8 @@ def compute_and_upload_labels(avg_delay, fs):
         name="delay_labels_fg",
         description="labels for each line",
         version=1, 
-        primary_key=["timestamp", "line"],
+        primary_key=["line"],
+        event_time="timestamp",
         online_enabled=True
     )
     fg.insert(df_labels, write_options={"wait_for_job": True})
@@ -134,6 +138,7 @@ def compute_and_upload_labels(avg_delay, fs):
 
 
 def load_hopsworks():
+    load_dotenv()
     hopsworks_key = os.getenv('HOPSWORKS_API_KEY')
     if hopsworks_key:
         os.environ['HOPSWORKS_API_KEY'] = hopsworks_key
@@ -153,11 +158,10 @@ def load_hopsworks():
 def get_trip_to_line_realtime(fs):
     today = datetime.now(ZoneInfo("Europe/Stockholm")).date().isoformat()
     fg = fs.get_feature_group(
-        name="trip_line_mapping_fg",
-        version=1
+        name="trip_line_mapping_fg"
     )
     try: 
-        df = fg.read()
+        df = fg.read(online=True)
     except Exception:
         df = None
 
@@ -182,7 +186,7 @@ def check_latest(fs):
         version=1
     )
     try: 
-        df = fg.read()
+        df = fg.read(online=True)
     except Exception:
         df = None # data does not exist, we should return True so we create data
     
@@ -254,7 +258,9 @@ def upload_trip_to_line_mapping(fs, trip_to_line):
 
 
 if __name__ == '__main__':
+    print("logging into hopsworks")
     project, fs = load_hopsworks()
+    print("logged into hopsworks")
 
     # static handler here
     static_fetched = False
