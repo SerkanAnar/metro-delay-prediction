@@ -248,6 +248,7 @@ def upload_trip_to_line_mapping(fs, trip_to_line):
         online_enabled=True
     )
     fg.insert(df, write_options={"wait_for_job": True})
+    return df
 
 
 if __name__ == '__main__':
@@ -259,17 +260,19 @@ if __name__ == '__main__':
     if check_latest(fs):
         print("Static data not yet uploaded for today. Fetching new data...")
         trip_to_line = get_trip_to_line_static()
-        upload_trip_to_line_mapping(fs, trip_to_line)
+        df_static = upload_trip_to_line_mapping(fs, trip_to_line)
         static_fetched = True
+    else:
+        df_static = None
     
     # realtime handler here
     if static_fetched:
         print("Static data for today has been fetched and uploaded to hopsworks")
+        trip_to_line = dict(zip(df_static.trip_id, df_static.line))
     else:
         print("Static data for today already exists. Skipped fetch.")
+        trip_to_line = get_trip_to_line_realtime(fs)
     
-    trip_to_line = get_trip_to_line_realtime(fs)
-
     if trip_to_line is None:
         print(f"No static data uploaded for today yet, skipping ingestion.")
         exit(0)
