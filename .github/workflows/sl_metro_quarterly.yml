@@ -2,7 +2,7 @@ name: Fetch SL Metro Data Quarterly
 
 on:
   schedule:
-    - cron: "0,30 * * * *"   # every 30 minutes
+    - cron: "0,30 6-22 * * *"   # every 30 minutes between 07:00-23:00
   workflow_dispatch:
 
 jobs:
