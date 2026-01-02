@@ -7,6 +7,7 @@ import hopsworks
 import os
 import io
 import numpy as np
+import time
 
 ### This script is run every 30 minutes as a github action
 ### 1. Fetches realtime VehiclePositions and TripUpdates data
@@ -139,11 +140,20 @@ def load_hopsworks():
     # If you are invited to someone else's Hopsworks project, write that project's name below
     project_name = None
 
-    if project_name:
-        project = hopsworks.login(project=f'{project_name}')
+    max_retries = 3
+    for i in range(max_retries):
+        try:
+            if project_name:
+                project = hopsworks.login(project=f'{project_name}')
+            else:
+                project = hopsworks.login()
+            fs = project.get_feature_store()
+            break
+        except Exception as e:
+            print(f'Error {e}, retrying in 1 second')
+            time.sleep(1)
     else:
-        project = hopsworks.login()
-    fs = project.get_feature_store()
+        raise
 
     return project, fs
 
