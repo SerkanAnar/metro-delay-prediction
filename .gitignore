@@ -218,3 +218,5 @@ sl_new/
 # data files
 data/*
 !data/!.gitkeep
+
+/model
