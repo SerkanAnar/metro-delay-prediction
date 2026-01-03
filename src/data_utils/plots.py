@@ -16,7 +16,7 @@ def plot_metro_delay_predictions(df, file_path, hindcast=False):
     for line, g in df.groupby('line'):
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.plot(
-            g['timestamp'],
+            g['timestamp'] + pd.Timedelta(minutes=30),
             g['predicted'],
             label=f'{line} - Predicted average delay',
             marker='o'
