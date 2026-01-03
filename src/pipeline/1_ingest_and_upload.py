@@ -104,15 +104,24 @@ def compute_and_upload_features(avg_delay, fs, now, now_str):
         })
     
     df_features = pd.DataFrame(feature_rows)
-    fg = fs.get_or_create_feature_group(
-        name="delay_features_fg",
-        description="lagged time features",
-        version=1,
-        primary_key=["line", "timestamp_str"],
-        event_time="timestamp",
-        online_enabled=True
-    )
-    fg.insert(df_features, write_options={"wait_for_job": True})
+    max_retries = 3
+    for i in range(max_retries):
+        try:
+            fg = fs.get_or_create_feature_group(
+                name="delay_features_fg",
+                description="lagged time features",
+                version=1,
+                primary_key=["line", "timestamp_str"],
+                event_time="timestamp",
+                online_enabled=True
+            )
+            fg.insert(df_features, write_options={"wait_for_job": True})
+            break
+        except Exception as e:
+            print(f'Error {e}, retrying in 1 second')
+            time.sleep(1)
+    else:
+        raise RuntimeError(f"Failed to insert feature group after {max_retries} retries")
     # return feature_rows
 
 
@@ -120,15 +129,24 @@ def compute_and_upload_labels(avg_delay, fs, now, now_str):
     label_rows = [{"timestamp": now, "timestamp_str": now_str, "line": line, "avg_delay": delay} for line, delay in avg_delay.items()]
     df_labels = pd.DataFrame(label_rows)
 
-    fg = fs.get_or_create_feature_group(
-        name="delay_labels_fg",
-        description="labels for each line",
-        version=1, 
-        primary_key=["line", "timestamp_str"],
-        event_time="timestamp",
-        online_enabled=True
-    )
-    fg.insert(df_labels, write_options={"wait_for_job": True})
+    max_retries = 3
+    for i in range(max_retries):
+        try:
+            fg = fs.get_or_create_feature_group(
+                name="delay_labels_fg",
+                description="labels for each line",
+                version=1, 
+                primary_key=["line", "timestamp_str"],
+                event_time="timestamp",
+                online_enabled=True
+            )
+            fg.insert(df_labels, write_options={"wait_for_job": True})
+            break
+        except Exception as e:
+            print(f'Error {e}, retrying in 1 second')
+            time.sleep(1)
+    else:
+        raise RuntimeError(f"Failed to insert feature group after {max_retries} retries")
     # return label_rows
 
 
@@ -153,19 +171,25 @@ def load_hopsworks():
             print(f'Error {e}, retrying in 1 second')
             time.sleep(1)
     else:
-        raise
+        raise RuntimeError(f"Failed to load project")
 
     return project, fs
 
 
 def get_trip_to_line_realtime(fs):
     today = datetime.now(ZoneInfo("Europe/Stockholm")).date().isoformat()
-    fg = fs.get_feature_group(
-        name="trip_line_mapping_fg"
-    )
-    try: 
-        df = fg.read(online=True)
-    except Exception:
+    max_retries = 3
+    for i in range(max_retries):
+        try:
+            fg = fs.get_feature_group(
+                name="trip_line_mapping_fg"
+            )
+            df = fg.read(online=True)
+            break
+        except Exception as e:
+            print(f'Error {e}, retrying in 1 second')
+            time.sleep(1)
+    else:
         df = None
 
     if df is None: # no static data
@@ -184,15 +208,20 @@ def get_trip_to_line_realtime(fs):
 def check_latest(fs):
     # return true if we should get new data
     today = datetime.now(ZoneInfo("Europe/Stockholm")).date().isoformat()
-    fg = fs.get_feature_group(
-        name="trip_line_mapping_fg",
-        version=1
-    )
-    try: 
-        df = fg.read(online=True)
-    except Exception:
-        df = None # data does not exist, we should return True so we create data
-    
+    max_retries = 3
+    for i in range(max_retries):
+        try:
+            fg = fs.get_feature_group(
+                name="trip_line_mapping_fg",
+                version=1
+            )
+            df = fg.read(online=True)
+            break
+        except Exception as e:
+            print(f'Error {e}, retrying in 1 second')
+            time.sleep(1)
+    else:
+        df = None  # data does not exist, we should return True so we create data
     if df is None or df.empty:
         return True
     
@@ -250,14 +279,23 @@ def upload_trip_to_line_mapping(fs, trip_to_line):
         for trip_id, line in trip_to_line.items()
     ]
     df = pd.DataFrame(rows)
-    fg = fs.get_or_create_feature_group(
-        name="trip_line_mapping_fg",
-        version=1,
-        primary_key=["trip_id"],
-        description="Static mapping from GTFS trip_id to metro line",
-        online_enabled=True
-    )
-    fg.insert(df, write_options={"wait_for_job": True})
+    max_retries = 3
+    for i in range(max_retries):
+        try:
+            fg = fs.get_or_create_feature_group(
+                name="trip_line_mapping_fg",
+                version=1,
+                primary_key=["trip_id"],
+                description="Static mapping from GTFS trip_id to metro line",
+                online_enabled=True
+            )
+            fg.insert(df, write_options={"wait_for_job": True})
+            break
+        except Exception as e:
+            print(f'Error {e}, retrying in 1 second')
+            time.sleep(1)
+    else:
+        raise RuntimeError(f'Failed to insert feature group after {max_retries}')
     return df
 
 
