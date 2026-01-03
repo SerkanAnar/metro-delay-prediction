@@ -1,17 +1,22 @@
 # Metro Delay Dashboard
 
-<div style="display: flex; gap: 16px; justify-content: center;">
-  <img src="./img/Blå_linjen_forecast.png" alt="Blue line forecast" style="width: 32%;">
-  <img src="./img/Gröna_linjen_forecast.png" alt="Green line forecast" style="width: 32%;">
-  <img src="./img/Röda_linjen_forecast.png" alt="Red line forecast" style="width: 32%;">
-</div>
-
-# Model Performance Monitoring
-
-**1-Day Hindcast: Predictions vs Outcomes**
-
-<div style="display: flex; gap: 16px; justify-content: center;">
-  <img src="./img/Blå_linjen_hindcast.png" alt="Blue line hindcast" style="width: 32%;">
-  <img src="./img/Gröna_linjen_hindcast.png" alt="Green line hindcast" style="width: 32%;">
-  <img src="./img/Röda_linjen_hindcast.png" alt="Red line hindcast" style="width: 32%;">
+<div style="display: flex; gap: 24px; justify-content: center; margin-top: 32px;">
+  <a href="forecasts.html", 
+     style="padding: 16px 24px;
+            background: #0000FF;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 18px">
+    View forecasts
+  </a>
+  <ahref="forecasts.html", 
+     style="padding: 16px 24px;
+            background: #00FF00;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 18px">
+    View hindcasts
+  </a>
 </div>
