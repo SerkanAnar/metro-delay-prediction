@@ -41,11 +41,14 @@ def plot_metro_delay_predictions(df, file_path, hindcast=False):
 
         ax.set_xlabel('Time')
         ax.set_ylabel('Average delay (seconds)')
-        ax.set_title(f'Metro delay prediction for {line}, {latest_date}')
-        ax.legend(fontsize='small')
+        if hindcast:
+            ax.set_title(f'Metro delay hindcast for {line}, {latest_date}')
+        else:
+            ax.set_title(f'Metro delay forecast for {line}, {latest_date}')
+        line_legend = ax.legend(loc='upper left', fontsize='small')
         patches = [Patch(color=colors[i], label=f"{labels[i]} ({ranges[i][0]}-{ranges[i][1]} s)") for i in range(len(colors))]
         band_legend = ax.legend(handles=patches, loc='upper right', title='Delay level', fontsize='x-small')
-        ax.add_artist(band_legend)
+        ax.add_artist(line_legend)
         
         ax.set_ylim(-120, 500)
         date = g['timestamp'].dt.normalize().iloc[0]
@@ -57,10 +60,10 @@ def plot_metro_delay_predictions(df, file_path, hindcast=False):
         plt.tight_layout()
         ax.xaxis.set_major_locator(mdates.MinuteLocator(interval=30))
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
-        os.makedirs(f"{file_path}/plots", exist_ok=True)
+        os.makedirs(f"{file_path}", exist_ok=True)
         if hindcast:
-            plt.savefig(f"{file_path}/plots/{line.replace(' ', '_')}_hindcast.png")
+            plt.savefig(f"{file_path}/{line.replace(' ', '_')}_hindcast.png")
         else:
-            plt.savefig(f"{file_path}/plots/{line.replace(' ', '_')}_forecast.png")
+            plt.savefig(f"{file_path}/{line.replace(' ', '_')}_forecast.png")
             
         plt.close(fig)
