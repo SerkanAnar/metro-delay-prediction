@@ -4,6 +4,10 @@ import pandas as pd
 
 def plot_metro_delay_predictions(df, file_path, hindcast=False):
     fig, ax = plt.subplots(figsize=(10, 6))
+    
+    df = df.copy()
+    df['timestamp'] = pd.to_datetime(df['timestamp']).dt.floor('30min')
+    df = df[(df['timestamp'].dt.hour >= 8) & (df['timestamp'].dt.hour <= 24)]
 
     df = df.sort_values('timestamp')
     df['timestamp'] = pd.to_datetime(df['timestamp'])
@@ -11,16 +15,16 @@ def plot_metro_delay_predictions(df, file_path, hindcast=False):
     for line, g in df.groupby('line'):
         ax.plot(
             g['timestamp'],
-            g['predicted_delay'],
-            label=f'{line} - predicted',
+            g['predicted'],
+            label=f'{line} - Predicted average delay',
             marker='o'
         )
 
-        if hindcast and 'actual_delay' in g.columns:
+        if hindcast and 'delay_current' in g.columns:
             ax.plot(
                 g['timestamp'],
-                g['actual_delay'],
-                label=f'{line} - actual',
+                g['delay_current'],
+                label=f'{line} - Actual average delay',
                 linestyle='--',
                 marker='^'
             )
