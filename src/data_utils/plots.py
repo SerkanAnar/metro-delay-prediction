@@ -37,7 +37,7 @@ def plot_metro_delay_predictions(df, file_path, hindcast=False):
         ax.set_title(f'Metro delay prediction for {line}, {latest_date}')
         ax.legend(fontsize='small')
         
-        ax.set_xlim(-120, 300)
+        ax.set_ylim(-120, 300)
         date = g['timestamp'].dt.normalize().iloc[0]
         start = date + pd.Timedelta(hours=7)
         end = date + pd.Timedelta(hours=24)
