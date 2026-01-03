@@ -32,7 +32,6 @@ jobs:
           STATIC_API_KEY: ${{ secrets.STATIC_API_KEY }}
           REALTIME_API_KEY: ${{ secrets.REALTIME_API_KEY }}
         run: |
-          python -m src.pipeline.1_ingest_and_upload
           ipython src/pipeline/3_inference_pipeline.ipynb
 
       - name: Store plots
