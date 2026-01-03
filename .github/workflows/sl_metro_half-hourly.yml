@@ -1,4 +1,4 @@
-name: Fetch SL Metro Data Quarterly
+name: Fetch SL Metro Data Half-Hourly
 
 on:
   schedule:
@@ -33,3 +33,13 @@ jobs:
           REALTIME_API_KEY: ${{ secrets.REALTIME_API_KEY }}
         run: |
           python -m src.pipeline.1_ingest_and_upload
+          ipython src/pipeline/3_inference_pipeline.ipynb
+
+      - name: Store plots
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add -f docs/images/
+          git diff --cached --quiet || git commit -m "Update forecasts and hindcasts"
+          git push
