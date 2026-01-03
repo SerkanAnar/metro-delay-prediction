@@ -1,4 +1,5 @@
 import matplotlib.dates as mdates
+from matplotlib.patches import Patch
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
@@ -13,9 +14,15 @@ def plot_metro_delay_predictions(df, file_path, hindcast=False):
 
     df = df.sort_values('timestamp')
     df['timestamp'] = pd.to_datetime(df['timestamp'])
+    
+    colors = ['green', 'yellow', 'orange', 'red']
+    labels = ['On time', 'Minor delay', 'Delay', 'Severe delay']
+    ranges = [(-120, 0), (0, 60), (60, 180), (180, 500)]
 
     for line, g in df.groupby('line'):
         fig, ax = plt.subplots(figsize=(10, 6))
+        for color, (start, end) in zip(colors, ranges):
+            ax.axhspan(start, end, color=color, alpha=0.25)
         ax.plot(
             g['timestamp'] + pd.Timedelta(minutes=30),
             g['prediction'],
@@ -36,8 +43,11 @@ def plot_metro_delay_predictions(df, file_path, hindcast=False):
         ax.set_ylabel('Average delay (seconds)')
         ax.set_title(f'Metro delay prediction for {line}, {latest_date}')
         ax.legend(fontsize='small')
+        patches = [Patch(color=colors[i], label=f"{labels[i]} ({ranges[i][0]}-{ranges[i][1]} s)") for i in range(len(colors))]
+        band_legend = ax.legend(handles=patches, loc='upper right', title='Delay level', fontsize='x-small')
+        ax.add_artist(band_legend)
         
-        ax.set_ylim(-120, 300)
+        ax.set_ylim(-120, 500)
         date = g['timestamp'].dt.normalize().iloc[0]
         start = date + pd.Timedelta(hours=7)
         end = date + pd.Timedelta(hours=24)
