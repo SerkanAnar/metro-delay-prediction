@@ -23,10 +23,10 @@ def plot_metro_delay_predictions(df, file_path, hindcast=False):
             marker='o'
         )
 
-        if hindcast and 'delay_current' in g.columns:
+        if hindcast and 'delay_hind' in g.columns:
             ax.plot(
                 g['timestamp'],
-                g['delay_current'],
+                g['delay_hind'],
                 label=f'{line} - Actual average delay',
                 linestyle='--',
                 marker='^'
