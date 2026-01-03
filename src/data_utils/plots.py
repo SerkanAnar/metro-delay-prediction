@@ -6,6 +6,8 @@ import pandas as pd
 def plot_metro_delay_predictions(df, file_path, hindcast=False):
     df = df.copy()
     df['timestamp'] = pd.to_datetime(df['timestamp']).dt.floor('30min')
+    latest_date = df['timestamp'].dt.date.max()
+    df = df[df['timestamp'].dt.date==latest_date]
     df = df[(df['timestamp'].dt.hour >= 8) & (df['timestamp'].dt.hour < 24)]
 
     df = df.sort_values('timestamp')
@@ -31,7 +33,7 @@ def plot_metro_delay_predictions(df, file_path, hindcast=False):
 
         ax.set_xlabel('Time')
         ax.set_ylabel('Average delay (seconds)')
-        ax.set_title(f'Metro delay prediction for {line}')
+        ax.set_title(f'Metro delay prediction for {line}, {latest_date}')
         ax.legend(fontsize='small')
 
         plt.xticks(rotation=45)
