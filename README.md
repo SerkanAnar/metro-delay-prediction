@@ -58,7 +58,13 @@ The best performing XGB Regressor achieved test MSE 118.8 and R2 score 0.895, wh
 
 The dependency on TrafikLab’s APIs is a big limitation, both for live data and historic data. The original plan was to use their historic data API (KoDa) to fetch data for the previous weeks and train the model on that, but fetching even one day of data could take more than 24 hours. Therefore, we decided to build our dataset with time, as fetching live data is near instant. However, this approach means that our dataset is relatively small for the first couple of weeks. 
 
-At the moment, our models only look at previous delays to predict the delay in 30 minutes. In the future, we would like to incorporate the actual positions of the vehicles and add more features, such as the weather, that could improve performance. 
+
+## Future Work
+
+- Add weather conditions as features in the pipeline
+- Add delay prediction for commuter trains (pendeltåg)
+- Predictions for line color, line number, and direction
+- Explore more models
 
 ## How to Run
 
@@ -79,3 +85,5 @@ To run the code, simply install the requirements specified in ```requirements.tx
 - ```3_inference_pipeline.ipynb```
 
 Also, before model training and inference, ensure that enough data has been uploaded to Hopsworks. 
+
+
