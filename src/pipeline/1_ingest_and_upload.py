@@ -109,7 +109,11 @@ def compute_and_upload_features(avg_delay, fs, now, now_str):
         try:
             fg = fs.get_or_create_feature_group(
                 name="features_fg",
+                description="lagged time features",
                 version=1,
+                primary_key=["line", "timestamp_str"],
+                event_time="timestamp",
+                online_enabled = True
             )
             fg.insert(df_features, write_options={"wait_for_job": True})
             break
