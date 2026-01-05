@@ -5,14 +5,15 @@ import os
 import pandas as pd
 
 
-def plot_metro_delay_predictions(df, file_path, hindcast=False):
+def plot_metro_delay_predictions(df:pd.DataFrame, file_path, hindcast=False):
     df = df.copy()
+    df = df.sort_values('timestamp')
     df['timestamp'] = pd.to_datetime(df['timestamp']).dt.floor('30min')
+    df = df.drop_duplicates(subset=['line', 'timestamp'])
     latest_date = df['timestamp'].dt.date.max()
     df = df[df['timestamp'].dt.date==latest_date]
     df = df[(df['timestamp'].dt.hour >= 8) & (df['timestamp'].dt.hour < 24)]
 
-    df = df.sort_values('timestamp')
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     
     colors = ['green', 'yellow', 'orange', 'red']
