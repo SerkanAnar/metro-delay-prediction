@@ -40,6 +40,7 @@ The pipeline is scheduled to run every half hour using GitHub Actions at minutes
 Currently, the following features are used in the pipeline.
 | `line_encoded` | `day_encoded` | `delay_60` | `delay_30` | `delay_current` |
 | --- | --- | --- | --- | --- |
+| `int64` | `int64` | `float64` | `float64` | `float64` |
 
 
 ## Results
