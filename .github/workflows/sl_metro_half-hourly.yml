@@ -42,4 +42,5 @@ jobs:
 
           git add -f docs/images/
           git diff --cached --quiet || git commit -m "Update forecasts and hindcasts"
-          git push
+          git pull --rebase origin main
+          git push origin main
