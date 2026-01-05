@@ -77,4 +77,4 @@ To run the code, simply install the requirements specified in ```requirements.tx
 - ```2_training_pipeline.ipynb```
 - ```3_inference_pipeline.ipynb```
 
-Also, before the model can be trained and inference can be done, ensure that enough data has been uploaded to Hopsworks. 
+Also, before model training and inference, ensure that enough data has been uploaded to Hopsworks. 
