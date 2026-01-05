@@ -38,7 +38,7 @@ The pipeline is scheduled to run every half hour using GitHub Actions at minutes
 
 ## Features
 Currently, the following features are used in the pipeline.
-| $\texttt{line\_encoded}$ | $\texttt{day\_encoded}$ | $\texttt{delay\_60}$ | $\texttt{delay\_30}$ | $\texttt{delay\_current}$ |
+| `line_encoded` | `day_encoded` | `delay_60` | `delay_30` | `delay_current` |
 | --- | --- | --- | --- | --- |
 
 
@@ -46,9 +46,9 @@ Currently, the following features are used in the pipeline.
 
 We trained two models: an XGB Regressor and an MLP Regressor. To measure model performance, we use the mean squared error (MSE) and R2 score as metrics. Also, a grid search is applied with the aim to get the most out of the models as possible. 
 
-For the XGB Regressor, the grid search was done with different configurations of $\texttt{n\_estimators} \in [100, 150, 200, 250]$ and $\texttt{lr} \in [0.01, 0.05, 0.1]$. The best performing model had the following parameters: $\texttt{lr}=0.1$ and $\texttt{n\_estimators}=100$. 
+For the XGB Regressor, the grid search was done with different configurations of `n_estimators` $\in [100, 150, 200, 250]$ and `lr` $\in [0.01, 0.05, 0.1]$. The best performing model had the following parameters: `lr` $=0.1$ and `n_estimators` $= 100$. 
 
-The MLP has 2 hidden layers, and the grid search was done with different configurations of $\texttt{h1} \in [32, 64, 128, 256]$, $\texttt{h2} \in [32, 64, 128, 256]$, $\texttt{lr} \in [0.01, 0.05, 0.1]$. The best performing model had the following parameters: $\texttt{lr}=0.05$, $\texttt{h1}=128$, and $\texttt{h2}=32$.
+The MLP has 2 hidden layers, and the grid search was done with different configurations of `h1` $\in [32, 64, 128, 256]$, `h2` $\in [32, 64, 128, 256]$, `lr` $\in [0.01, 0.05, 0.1]$. The best performing model had the following parameters: `lr` $=0.05$, `h1` $=128$, and `h2` $=32$.
 
 The best performing XGB Regressor achieved test MSE 118.8 and R2 score 0.895, while the best performing MLP Regressor achieved test MSE 107.6 and R2 score 0.905. These differences are quite small, and considering that the MSE calculations are using the squared error between the true delay and predicted delay in seconds, the predictions should not be that different from each other in practice. As our final model, we decided to use the MLP. 
 
