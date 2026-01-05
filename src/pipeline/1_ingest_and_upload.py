@@ -24,10 +24,10 @@ def fetch_realtime():
 
 def get_delay_lags(fs, line, timestamp):
     fg = fs.get_or_create_feature_group(
-        name="delay_features_fg",
+        name="features_fg",
         description="lagged time features",
         version=1,
-        primary_key=["line", "timestamp"],
+        primary_key=["line", "timestamp_str"],
         event_time="timestamp",
         online_enabled=True
     )
@@ -108,12 +108,8 @@ def compute_and_upload_features(avg_delay, fs, now, now_str):
     for i in range(max_retries):
         try:
             fg = fs.get_or_create_feature_group(
-                name="delay_features_fg",
-                description="lagged time features",
+                name="features_fg",
                 version=1,
-                primary_key=["line", "timestamp_str"],
-                event_time="timestamp",
-                online_enabled=True
             )
             fg.insert(df_features, write_options={"wait_for_job": True})
             break
@@ -133,7 +129,7 @@ def compute_and_upload_labels(avg_delay, fs, now, now_str):
     for i in range(max_retries):
         try:
             fg = fs.get_or_create_feature_group(
-                name="delay_labels_fg",
+                name="labels_fg",
                 description="labels for each line",
                 version=1, 
                 primary_key=["line", "timestamp_str"],
