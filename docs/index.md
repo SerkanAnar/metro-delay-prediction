@@ -8,7 +8,7 @@
 
 # Model Performance Monitoring
 
-**1-Day Hindcast: Predictions vs Outcomes**
+**30 min Hindcast: Predictions vs Outcomes**
 
 <div style="display: flex; gap: 16px; justify-content: center;">
   <img src="./images/Blå_linjen_hindcast.png" alt="Blue line hindcast" style="width: 32%;">
