@@ -8,7 +8,7 @@ The dashboard displaying the forecasts and hindcasts can be found [here](https:/
 
 ![architecture](docs/images/architecture.png)
 
-## Architecture explanation
+## Architecture Explanation
 **Data sources**:  
 Historical and dynamic data are obtained from Trafiklab’s GTFS Regional and Static APIs.  
   
