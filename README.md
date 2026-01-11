@@ -6,7 +6,7 @@ The dashboard displaying the forecasts and hindcasts can be found [here](https:/
 
 ## Architecture
 
-![architecture](docs/images/architecture.png)
+![architecture](docs/images/architecture.svg)
 
 ## Architecture Explanation
 **Data sources**  
