@@ -4,6 +4,10 @@ This is a serverless machine learning pipeline for predicting the average delay 
 
 The dashboard displaying the forecasts and hindcasts can be found [here](https://serkananar.github.io/metro-delay-prediction/).
 
+## Architecture
+
+![architecture](docs/images/architecture.png)
+
 ## Architecture explanation
 **Data sources**:  
 Historical and dynamic data are obtained from Trafiklab’s GTFS Regional and Static APIs.  
