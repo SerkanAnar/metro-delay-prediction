@@ -9,25 +9,25 @@ The dashboard displaying the forecasts and hindcasts can be found [here](https:/
 ![architecture](docs/images/architecture.png)
 
 ## Architecture Explanation
-**Data sources**:  
+**Data sources**  
 Historical and dynamic data are obtained from Trafiklab’s GTFS Regional and Static APIs.  
   
-**Filtering and feature engineering**:  
+**Filtering and feature engineering**  
 Raw GTFS data is filtered to metro traffic only and transformed into aggregated features representing scheduled trips and current delay statistics per line.  
   
-**Feature store**:  
+**Feature store**  
 All processed features are stored as versioned feature groups in Hopsworks.  
   
-**Model training**:  
+**Model training**  
 Training jobs retrieve historical data from the feature store to train delay prediction models.  
   
-**Model registry**:  
+**Model registry**  
 Trained models are versioned and stored in the Hopsworks model registry.  
   
-**Inference**:  
+**Inference**  
 Batch inference retrieves the latest feature data from the feature store and the selected model from the model registry. The predictions are written back to the feature store for downstream use.  
   
-**Monitoring and visualization**:  
+**Monitoring and visualization**  
 Current and historical predictions of today are visualized through a dashboard hosted on GitHub Pages.
 
 ## Pipeline
