@@ -29,7 +29,7 @@ Current and historical predictions of today are visualized through a dashboard h
 ## Pipeline
 The pipeline is scheduled to run every half hour using GitHub Actions at minutes 00 and 30, from 7 AM to 11 PM UTC.
 
-```1_ingest_and_upload.py```: Ingests current traffic data from Trafiklab’s API, performs feature engineering, and uploads the resulting feature groups to Hopsworks.  
+```1_feature_pipeline.py```: Ingests current traffic data from Trafiklab’s API, performs feature engineering, and uploads the resulting feature groups to Hopsworks.  
   
 ```2_training_pipeline.ipynb```: Features and labels are loaded from the two feature groups that were updated in the previous step in the pipeline, and features are paired up with corresponding delays from 30 minutes into the future. Then, the current day is added as a feature and both the day and line are encoded as single integer values that the model can interpret. Since the model is operating on time-series data, the data is manually split into training and test, on which the model is trained on. Lastly, the model and two artifacts, namely the encoders, are uploaded to Hopsworks so they can be downloaded for inference.  
   
@@ -80,7 +80,7 @@ GTFS Regional Realtime and GTFS Regional Static have limited calls, but the init
 
 To run the code, simply install the requirements specified in ```requirements.txt``` and run the ordered steps in the pipeline folder. 
 
-- ```1_ingest_and_upload.py```
+- ```1_feature_pipeline.py```
 - ```2_training_pipeline.ipynb```
 - ```3_inference_pipeline.ipynb```
 
