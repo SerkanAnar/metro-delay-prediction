@@ -2,7 +2,9 @@
 
 This is a serverless machine learning pipeline for predicting the average delay for the next half hour of all three SL metro lines (blå, grön, röd) in Stockholm. The predictions are based on the previous delays, the weekday, and the line color of the metro.
 
-The dashboard displaying the forecasts and hindcasts can be found [here](https://serkananar.github.io/metro-delay-prediction/).
+The dashboard displaying the forecasts and hindcasts can be found [here](https://serkananar.github.io/metro-delay-prediction/).  
+
+**Note**: The live dashboard is currently not updating due to an unresolved quota issue with one of the APIs. This does not affect the training and inference pipelines, which can be run locally. 
 
 ## Architecture
 
